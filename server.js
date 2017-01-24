@@ -51,6 +51,14 @@ server.register(require('inert'), function (error) {
       }
     }
   });
+
+  server.route({
+    method: 'GET',
+    path: '/css/style.css',
+    handler: {
+      file: 'src/assets/style.css'
+    }
+  });
 });
 
 // setup hoodie/server

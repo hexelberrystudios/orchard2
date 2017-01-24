@@ -1,8 +1,7 @@
 import Vue from 'vue'
-import Home from '../components/Home.vue'
-import About from '../components/About.vue'
-import Counter from '../components/Counter.vue'
-import Topics from '../components/Topics.vue'
+import LoginPage from '../components/LoginPage.vue'
+import RegisterPage from '../components/RegisterPage.vue'
+import StyleGuide from '../components/StyleGuide.vue'
 import VueRouter from 'vue-router'
 
 Vue.use(VueRouter)
@@ -11,10 +10,9 @@ const router = new VueRouter({
   mode: 'history',
   base: __dirname,
   routes: [
-    { path: '/', component: Home },
-    { path: '/Topics', component: Topics },
-    { path: '/Counter', component: Counter },
-    { path: '/About', component: About }
+    { path: '/', component: LoginPage },
+    { path: '/register', component: RegisterPage },
+    { path: '/style-guide', component: StyleGuide }
   ]
 })
 
