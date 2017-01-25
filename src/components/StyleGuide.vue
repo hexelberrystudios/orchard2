@@ -79,7 +79,7 @@
         <code id="checkbox_field" class="component-js"></code>
       </section>
       <section id="radio_button_doc">
-        <radio-button-field id="example_radio_button" label="Radio Buttons" options="radioButtonOptions"></radio-button-field>
+        <radio-button-field id="example_radio_button" label="Radio Buttons" :options="radioButtonOptions"></radio-button-field>
         <code id="radio_button_field" class="component-js"></code>
       </section>
     </article>
@@ -88,7 +88,7 @@
         <h2 id="dropdown_field">Dropdowns</h2>
       </header>
       <section id="dropdown_field_doc">
-        <dropdown-field id="example_dropdown" label="Dropdown" options="dropdownOptions"></dropdown-field>
+        <dropdown-field id="example_dropdown" label="Dropdown" :options="dropdownOptions"></dropdown-field>
         <code id="dropdown_field" class="component-js"></code>
       </section>
     </article>
@@ -98,13 +98,13 @@
       </header>
       <section id="object_list_doc">
         <div>
-          <object-list objects="objectListObjects"></object-list>
+          <object-list :objects="objectListObjects"></object-list>
         </div>
         <code id="object_list" class="component-js"></code>
       </section>
       <section id="choice_list_doc">
         <div>
-          <choice-list objects="objectListObjects"></choice-list>
+          <choice-list :choices="objectListObjects"></choice-list>
         </div>
         <code id="choice_list" class="component-js"></code>
       </section>
@@ -217,8 +217,15 @@
   export default {
     name: 'styleguide',
     data: function () {
+      var opt1 = Object.create(null);
+      opt1.label = 'Option 1';
+      opt1.value = 'option_1';
+      var opt2 = Object.create(null);
+      opt2.label = 'Option 2';
+      opt2.value = 'option_2';
+
       return {
-        radioButtonOptions: [{ 'label': 'Option 1', 'value': 'option_1' }, { 'label': 'Option 2', 'value': 'option_2' }],
+        radioButtonOptions: [opt1, opt2],
         dropdownOptions: [{ value: '', label: 'Select a value' }, { value: 'one', label: 'A value' }, { value: 'two', label: 'Another value' }],
         objectListObjects: [{ link: '#', label: 'One thing' }, { link: '#', label: 'Another thing' }, { link: '#', label: 'The best thing' }]
       };

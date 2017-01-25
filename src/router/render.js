@@ -1,4 +1,6 @@
 const renderLayout = function (renderer, html, request, reply) {
+  'use strict';
+  
   if (!renderer) {
     return request.raw.res.end('waiting for compilation... refresh in a moment.')
   }
