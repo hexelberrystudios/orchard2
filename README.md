@@ -16,3 +16,6 @@ npm start
 npm install
 npm run dev
 ```
+
+## Hoodie Setup
+``` mkdir -p .hoodie/data/hoodie-config ```

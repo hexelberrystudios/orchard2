@@ -43,10 +43,10 @@ server.register(require('inert'), function (error) {
 
   server.route({
     method: 'GET',
-    path: '/dist/{file*}',
+    path: '/public/{file*}',
     handler: {
       directory: {
-        path: 'dist',
+        path: 'public',
         lookupCompressed: true
       }
     }
