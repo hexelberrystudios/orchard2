@@ -61,7 +61,7 @@ module.exports =
 /******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
 
 /******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "/dist/";
+/******/ 	__webpack_require__.p = "/public/";
 
 /******/ 	// Load entry module and return exports
 /******/ 	return __webpack_require__(__webpack_require__.s = 54);
@@ -7019,8 +7019,15 @@ if (typeof document !== 'undefined') {
 /* harmony default export */ __webpack_exports__["default"] = {
   name: 'styleguide',
   data: function data() {
+    var opt1 = Object.create(null);
+    opt1.label = 'Option 1';
+    opt1.value = 'option_1';
+    var opt2 = Object.create(null);
+    opt2.label = 'Option 2';
+    opt2.value = 'option_2';
+
     return {
-      radioButtonOptions: [{ 'label': 'Option 1', 'value': 'option_1' }, { 'label': 'Option 2', 'value': 'option_2' }],
+      radioButtonOptions: [opt1, opt2],
       dropdownOptions: [{ value: '', label: 'Select a value' }, { value: 'one', label: 'A value' }, { value: 'two', label: 'Another value' }],
       objectListObjects: [{ link: '#', label: 'One thing' }, { link: '#', label: 'Another thing' }, { link: '#', label: 'The best thing' }]
     };
@@ -7765,7 +7772,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     attrs: {
       "id": "example_radio_button",
       "label": "Radio Buttons",
-      "options": "radioButtonOptions"
+      "options": _vm.radioButtonOptions
     }
   }), _vm._v(" "), _c('code', {
     staticClass: "component-js",
@@ -7780,7 +7787,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     attrs: {
       "id": "example_dropdown",
       "label": "Dropdown",
-      "options": "dropdownOptions"
+      "options": _vm.dropdownOptions
     }
   }), _vm._v(" "), _c('code', {
     staticClass: "component-js",
@@ -7793,7 +7800,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     }
   }, [_c('div', [_c('object-list', {
     attrs: {
-      "objects": "objectListObjects"
+      "objects": _vm.objectListObjects
     }
   })], 1), _vm._v(" "), _c('code', {
     staticClass: "component-js",
@@ -7806,7 +7813,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     }
   }, [_c('div', [_c('choice-list', {
     attrs: {
-      "objects": "objectListObjects"
+      "choices": _vm.objectListObjects
     }
   })], 1), _vm._v(" "), _c('code', {
     staticClass: "component-js",
@@ -7958,7 +7965,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
   return _c('fieldset', {
     staticClass: "hxb-fieldset"
   }, [_c('legend', [_vm._v(_vm._s(_vm.label))]), _vm._v(" "), _vm._l((_vm.options), function(option, index) {
-    return _c('input', {
+    return [_c('input', {
       staticClass: "hxb-radio-button",
       attrs: {
         "id": _vm.id + '_' + index,
@@ -7968,14 +7975,12 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
       domProps: {
         "value": option.value
       }
-    })
-  }), _vm._v(" "), _vm._l((_vm.options), function(option, index) {
-    return _c('label', {
+    }), _vm._v(" "), _c('label', {
       staticClass: "hxb-radio-button-label",
       attrs: {
         "for": _vm.id + '_' + index
       }
-    }, [_vm._v("\n    " + _vm._s(option.value) + "\n  ")])
+    }, [_vm._v("\n      " + _vm._s(option.value) + "\n    ")])]
   })], 2)
 },staticRenderFns: []}
 
