@@ -10,12 +10,12 @@ const init = function (server) {
 
   // parse index.html template
   const html = (() => {
-    const template = fs.readFileSync(resolve('../../index.html'), 'utf-8');
+    const template = fs.readFileSync(resolve('../../public/index.html'), 'utf-8');
     const i = template.indexOf('{{ APP }}');
     // @TODO: Figure out how vue-style-loader works
     // styles are injected dynamically via vue-style-loader in development
     //const style = isProd ? '<link rel="stylesheet" href="/dist/styles.css">' : ''
-    const style = '<link rel="stylesheet" href="/dist/styles.css">';
+    const style = '';
     return {
       head: template.slice(0, i).replace('{{ STYLE }}', style),
       tail: template.slice(i + '{{ APP }}'.length)

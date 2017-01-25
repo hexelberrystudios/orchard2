@@ -9,8 +9,8 @@ const routes = require('./src/router/server.js');
 // @TODO: favicon
 // init server connection
 server.connection({
-  host: 'localhost',
-  port: 8000
+  host: process.env.IP,
+  port: process.env.PORT
 });
 
 // setup routes
