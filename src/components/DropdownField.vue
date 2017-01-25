@@ -3,7 +3,7 @@
     <label :for="id"
            class="hxb-u-display-block">{{ label }}</label>
     <select :id="id" class="hxb-dropdown">
-      <option v-for="option in options" :value="option.value">option.label</option>
+      <option v-for="option in options" :value="option.value">{{ option.label }}</option>
     </select>
   </div>
 </template>
