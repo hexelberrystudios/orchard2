@@ -1,7 +1,7 @@
 import Vue from 'vue'
-import LoginPage from '../components/LoginPage.vue'
-import RegisterPage from '../components/RegisterPage.vue'
-import StyleGuide from '../components/StyleGuide.vue'
+import LoginPage from '../components/pages/LoginPage.vue'
+import RegisterPage from '../components/pages/RegisterPage.vue'
+import StyleGuide from '../components/pages/StyleGuide.vue'
 import VueRouter from 'vue-router'
 
 Vue.use(VueRouter)

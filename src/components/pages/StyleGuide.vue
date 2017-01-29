@@ -64,7 +64,7 @@
         <h2 id="forms">Forms</h2>
       </header>
       <section id="text_field_doc">
-        <text-field id="example_text_field" label="Text Field" placeholder="Placeholder"></text-field>
+        <!--<text-field id="example_text_field" label="Text Field" placeholder="Placeholder"></text-field>-->
         <p>
           The type argument allows you to use the text field template for emails, passwords, telephone numbers, etc.
         </p>
@@ -183,15 +183,15 @@
 </template>
 
 <script>
-  import CheckboxField from './CheckboxField.vue'
-  import ChoiceList from './ChoiceList.vue'
-  import DropdownField from './DropdownField.vue'
-  import ObjectList from './ObjectList.vue'
-  import PrimaryButton from './PrimaryButton.vue'
-  import RadioButtonField from './RadioButtonField.vue'
-  import SubmitButton from './SubmitButton.vue'
-  import TextAreaField from './TextAreaField.vue'
-  import TextField from './TextField.vue'
+  import CheckboxField from '../CheckboxField.vue'
+  import ChoiceList from '../ChoiceList.vue'
+  import DropdownField from '../DropdownField.vue'
+  import ObjectList from '../ObjectList.vue'
+  import PrimaryButton from '../PrimaryButton.vue'
+  import RadioButtonField from '../RadioButtonField.vue'
+  import SubmitButton from '../SubmitButton.vue'
+  import TextAreaField from '../TextAreaField.vue'
+  import TextField from '../TextField.vue'
 
   if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', function (e) {
@@ -200,7 +200,7 @@
       var components = {
         button: '<primary-button text="Button"></primary-button>',
         submit_button: '<submit-button text="Submit"></submit-button>',
-        text_field: '<text-field id="example_text_field" label="Text Field" placeholder="Placeholder"></text-field>',
+        // text_field: '<text-field id="example_text_field" label="Text Field" placeholder="Placeholder"></text-field>',
         textarea_field: '<textarea-field id="example_textarea_field" label="Text Area" placeholder="Placeholder"></textarea-field>',
         checkbox_field: '<checkbox-field id="example_checkbox" label="Checkbox" value="Checkbox"></checkbox-field>',
         radio_button_field: '<radio-button-field id="example_radio_button" label="Radio Buttons" options="radioButtonOptions"></radio-button-field>',

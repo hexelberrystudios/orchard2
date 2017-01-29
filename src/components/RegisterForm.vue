@@ -1,7 +1,13 @@
 <template>
-  <form name="register" method="post" action="/register" class="hxb-form">
-    <text-field id="username" type="text" placeholder="username"></text-field>
-    <text-field id="password" type="password" placeholder="password"></text-field>
+  <form v-on:submit="register" name="register" method="post" action="/register" class="hxb-form">
+    <text-field id="username"
+                label="username"
+                type="text"
+                placeholder="username"></text-field>
+    <text-field id="password"
+                label="password"
+                type="password"
+                placeholder="password"></text-field>
     <submit-button text="Register"></submit-button>
   </form>
 </template>
@@ -12,8 +18,14 @@
   
   export default {
     name: 'register-form',
-    // List the components used on this page. This is using ES2015 syntax,
-    // where PrimaryButton is the same as 'PrimaryButton': PrimaryButton
+    methods: {
+      register: function (e) {
+        e.preventDefault();
+        console.log(this.$store.state.form);
+        console.log(this.$store.state.form.fields.username);
+        console.log(this.$store.state.form.fields.password);
+      }
+    },
     components: {
       TextField,
       SubmitButton

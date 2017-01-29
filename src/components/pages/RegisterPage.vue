@@ -6,7 +6,7 @@
 </template>
 
 <script>
-  import RegisterForm from './RegisterForm.vue'
+  import RegisterForm from '../RegisterForm.vue'
   
   export default {
     name: 'register-page',
