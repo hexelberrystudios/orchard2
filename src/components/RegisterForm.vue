@@ -20,10 +20,18 @@
     name: 'register-form',
     methods: {
       register: function (e) {
+        let self = this;
         e.preventDefault();
         console.log(this.$store.state.form);
         console.log(this.$store.state.form.fields.username);
         console.log(this.$store.state.form.fields.password);
+        // hoodie.account is not available until hoodie.ready (a promise) is resolved.
+        hoodie.ready.then(function () {
+          if (!hoodie.account.isSignedIn()) {
+            console.log('not signed in');
+            self.$router.push('/home'); // redirect to the home page when finished
+          }
+        });
       }
     },
     components: {

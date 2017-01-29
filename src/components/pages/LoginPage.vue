@@ -1,6 +1,8 @@
 <template>
   <article>
-    <h1 class="hxb-u-txt-center">Hexelberry Orchard</h1>
+    <header>
+      <h1 class="hxb-u-txt-center">Hexelberry Orchard</h1>
+    </header>
     <login-form></login-form>
   </article>
 </template>
