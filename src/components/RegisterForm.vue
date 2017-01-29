@@ -22,15 +22,30 @@
       register: function (e) {
         let self = this;
         e.preventDefault();
-        console.log(this.$store.state.form);
-        console.log(this.$store.state.form.fields.username);
-        console.log(this.$store.state.form.fields.password);
+
         // hoodie.account is not available until hoodie.ready (a promise) is resolved.
         hoodie.ready.then(function () {
-          if (!hoodie.account.isSignedIn()) {
-            console.log('not signed in');
-            self.$router.push('/home'); // redirect to the home page when finished
-          }
+          // @TODO: Check if signing out is necessary before signing in
+          hoodie.account.signUp({
+            username: self.$store.state.form.fields.username,
+            password: self.$store.state.form.fields.password
+          }).then(function (accountProperties) {
+            // returns id, username, createdAt, updatedAt
+            console.log(accountProperties);
+            // account created! you aren't signed in yet, though
+            hoodie.account.signIn({
+              username: self.$store.state.form.fields.username,
+              password: self.$store.state.form.fields.password
+            }).then(function (sessionProperties) {
+              // returns id, username, createdAt, updatedAt,
+              // and profile properties (i.e. fullname)
+              console.log(sessionProperties);
+              // redirect to the home page when finished
+              self.$router.push('/home');
+            });
+          }).catch(function (err) {
+            console.log(err);
+          });
         });
       }
     },
