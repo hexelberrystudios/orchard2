@@ -197,7 +197,7 @@ body, html {
 .hxb-object-list {
   list-style: none;
   margin: 0;
-  padding-left: 2.5rem;
+  padding: 0;
 }
 
 .hxb-object-list-item {
@@ -219,6 +219,11 @@ body, html {
 
 .hxb-object-list-item__arrow {
   float: right;
+}
+
+.hxb-object-list.is-indented > .hxb-object-list-item {
+    margin-left: 2rem;
+    width: 80%;
 }
 
 /* Choice list: Single drop down on the page? Use this instead. */
@@ -250,6 +255,39 @@ a:visited {
   color: var(--dark-color);
 }
 
+/* Header */
+.hxb-header {
+  background-color: var(--med-color);
+  color: #fff;
+  text-align: center;
+  padding: 0.25rem;
+}
+
+/* Footer */
+.hxb-footer {
+  background-color: var(--med-color);
+  color: #fff;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  padding: 0.25rem;
+}
+
+.hxb-footer-list {
+  list-style: none;
+  margin: 0;
+}
+
+.hxb-footer-list__action {
+  display: inline-block;
+  width: 32%;
+  text-align: center;
+}
+
+.hxb-footer-list__action > a {
+  color: #fff;
+}
+
 /* Utilities */
 .hxb-u-display-block {
   display: block;
@@ -261,4 +299,8 @@ a:visited {
 
 .hxb-u-ml-05 {
   margin-left: 0.5rem;
+}
+
+.hxb-u-pdl-1 {
+  padding-left: 1rem;
 }

@@ -8,6 +8,8 @@
   /**
    * Shows a list of items and bundles for the current bundle directory.
    *
+   * @TODO: Replace items with data pulled from DB.
+   *
    * @param {STRING} {REQUIRED} path The bundle path to display.
    */
 

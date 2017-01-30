@@ -1,5 +1,5 @@
 <template>
-  <ul class="hxb-object-list">
+  <ul class="hxb-object-list" v-bind:class="{ 'is-indented': isIndented }">
     <li v-for="object in objects" class="hxb-object-list-item">
       <router-link :to="object.link" class="hxb-object-list-item__link">
         <span>{{ object.label }}</span>
@@ -17,6 +17,15 @@
    */
   export default {
     name: 'object-list',
-    props: ['objects']
+    props: {
+      objects: {
+        type: Array,
+        required: true
+      },
+      isIndented: {
+        type: Boolean,
+        required: false
+      }
+    }
   }
 </script>
