@@ -1,10 +1,10 @@
 <template>
-  <article>
+  <div>
     <header>
       <h1 class="hxb-u-txt-center">Hexelberry Orchard</h1>
     </header>
     <register-form></register-form>
-  </article>
+  </div>
 </template>
 
 <script>

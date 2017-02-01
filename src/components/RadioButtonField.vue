@@ -20,7 +20,7 @@
    * options {ARRAY} - [{ label: 'string', value: 'string' }, ...]
    */
   export default {
-    name: 'dropdown-field',
+    name: 'radio-button-field',
     props: ['id', 'label', 'options']
   }
 </script>
