@@ -4,7 +4,8 @@
            type="checkbox"
            class="hxb-checkbox"
            :name="id"
-           :value="value" />
+           :value="value"
+           @change="update" />
     <label :for="id" class="hxb-checkbox-label">
       {{ label }}
     </label>
@@ -12,9 +13,38 @@
 </template>
 
 <script>
+  import { mapState } from 'vuex'
+  
   export default {
     name: 'checkbox-field',
-    // define the props that can be passed in, to differentiate local variables versus arguments I guess
-    props: ['id', 'label', 'type', 'placeholder', 'value']
+    methods: {
+      update (e) {
+        // tell action in form vuex module to update its form field with the following key/value pair
+        this.$store.dispatch('form/updateField', {
+          name: this.id,
+          value: e.target.value
+        })
+      }
+    },
+    computed: {
+      // get the latest value of this form field from the vuex store
+      ...mapState({
+        value: state => state.form.fields[this.id]
+      })
+    },
+    props: {
+      id: {
+        type: String,
+        required: true
+      },
+      label: {
+        type: String,
+        required: true
+      },
+      placeholder: {
+        type: String,
+        required: false
+      }
+    }
   }
 </script>

@@ -3,7 +3,6 @@ import Vuex from 'vuex'
 import * as actions from './actions'
 import * as getters from './getters'
 import form from './modules/form'
-import fields from './modules/fields'
 
 Vue.use(Vuex)
 
@@ -37,7 +36,6 @@ export default new Vuex.Store({
   mutations,
   getters,
   modules: {
-    form,
-    fields
+    form
   }
 })

@@ -16,6 +16,11 @@
    */
   export default {
     name: 'choice-list',
-    props: ['choices']
+    props: {
+      choices: {
+        type: Array,
+        required: true
+      }
+    }
   }
 </script>

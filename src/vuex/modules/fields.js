@@ -2,7 +2,9 @@ const fieldListModule = {
   // namespace this module so that it doesn't collide with other store behavior
   namespaced: true, // -> getters['fields/*']
   // default values
-  state: { fields: [] },
+  // fields are represented as an array of empty objects since the data gets managed in the
+  // form store, but we need to keep track of an ordered list of objects we can remove in the future
+  state: { fields: [{}] },
   // directly update the store
   mutations: {
     // add field to list

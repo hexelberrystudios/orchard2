@@ -9,6 +9,9 @@ const formModule = {
     UPDATE_FIELD: (state, field) => {
       state.fields[field.name] = field.value;
     },
+    REMOVE_FIELD: (state, field) => {
+      delete state.fields[field.name];
+    },
     // reset all form state
     RESET_FORM: (state) => {
       state.fields = {};

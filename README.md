@@ -19,3 +19,9 @@ npm run dev
 
 ## Hoodie Setup
 ``` mkdir -p .hoodie/data/hoodie-config ```
+
+## @TODO:
+
+- Update all form elements to use vuex
+- Add route event listener that clears the form object every time the route changes (maybe?)
+- Complete New Item Page

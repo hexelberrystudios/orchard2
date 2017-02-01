@@ -19,7 +19,7 @@
   export default {
     name: 'register-form',
     methods: {
-      register: function register (e) {
+      register: function (e) {
         let self = this;
         e.preventDefault();
 

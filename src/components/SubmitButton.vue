@@ -5,6 +5,11 @@
 <script>
   export default {
     name: 'submit-button',
-    props: ['text']
+    props: {
+      text: {
+        type: String,
+        required: true
+      }
+    }
   }
 </script>
