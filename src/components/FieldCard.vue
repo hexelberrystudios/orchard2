@@ -1,5 +1,5 @@
 <template>
-  <div class="hxb-form-card">
+  <div class="hxb-field-card">
     <remove-button :remove="remove"></remove-button>
     <text-field :id="fieldLabel" label="Field Label"></text-field>
     <dropdown-field :id="fieldType" label="Field Type" :options="fieldTypes"></dropdown-field>

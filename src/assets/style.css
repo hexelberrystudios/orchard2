@@ -7,8 +7,6 @@
   --light-color: #fbf8fa;
   --v-light-color: #fff;
   --gray-color-shadow: rgba(191, 168, 185, 0.25);
-  /* Utility vars */
-  --input-field-width: 15rem;
 }
 
 body, html {
@@ -26,7 +24,7 @@ body, html {
 
 /* Forms */
 .hxb-form {
-  transform: translate(calc(50% - var(--input-field-width) / 2), 0%);
+  transform: translate(calc(50% - 15rem / 2), 0%);
 }
 
 /* Label */
@@ -39,10 +37,12 @@ body, html {
   border-radius: 0.25rem;
   border: 0.1rem solid var(--gray-color);
   box-shadow: inset 0 0.1rem 0.1rem rgba(0, 0, 0, .075);
-  min-width: var(--input-field-width);
+  min-width: 15rem;
+  height: 1.25rem;
 }
 
 .hxb-fieldset {
+  width: 13.8rem;
   border-radius: 0.25rem;
   border: 0.1rem solid var(--dark-color);
 }
@@ -169,7 +169,8 @@ body, html {
   font-size: 1rem;
   border-color: var(--gray-color);
   background-color: var(--light-color);
-  min-width: 15rem;
+  min-width: 15.7rem;
+  height: 2rem;
 }
 
 /* Buttons */
@@ -185,6 +186,16 @@ body, html {
 .hxb-button:hover,
 .hxb-button:active {
   background-color: var(--dark-color);
+}
+
+.hxb-field-card > .hxb-remove-button {
+  float: right;
+  font-size: 1.5rem;
+  border: none;
+  background: none;
+  color: var(--med-color);
+  padding: 0 0.75rem 0 0;
+  margin: 0;
 }
 
 /* Form formatting */
@@ -286,6 +297,21 @@ a:visited {
 
 .hxb-footer-list__action > a {
   color: #fff;
+}
+
+/* Cards */
+.hxb-field-card {
+  background-color: #fff;
+  margin-left: -6%;
+  padding-left: 6%;
+  padding-bottom: 1rem;
+  border-radius: 0.3rem;
+  width: calc(15rem + 8%);
+  box-shadow: 0.1rem 0.1rem 0.5rem var(--med-color);
+}
+
+.hxb-field-card > .hxb-form-field:nth-child(2) {
+  padding-top: 1rem;
 }
 
 /* Utilities */

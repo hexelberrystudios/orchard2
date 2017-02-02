@@ -11,7 +11,7 @@
               @change="update" />
       <label  :for="id + '_' + index"
               class="hxb-radio-button-label">
-        {{ option.value }}
+        {{ option.label }}
       </label>
     </template>
   </fieldset>
