@@ -1,5 +1,7 @@
 <template>
-  <button type="button" class="hxb-add-item-button" @click="addField">+</button>
+  <button type="button" class="hxb-field-card hxb-add-item-button" @click="addField">
+    <span class="hxb-add-item-button__icon">+</span>
+  </button>
 </template>
 
 <script>

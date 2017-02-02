@@ -198,6 +198,20 @@ body, html {
   margin: 0;
 }
 
+.hxb-add-item-button {
+  display: block;
+  font-size: 1rem;
+  box-sizing: content-box;
+}
+
+.hxb-add-item-button > .hxb-add-item-button__icon {
+  display: block;
+  width: calc(15rem + 8%);
+  font-size: 10rem;
+  color: var(--med-color);
+  font-weight: 100;
+}
+
 /* Form formatting */
 .hxb-form-field {
   margin-bottom: 1rem;
@@ -278,7 +292,7 @@ a:visited {
 .hxb-footer {
   background-color: var(--med-color);
   color: #fff;
-  position: fixed;
+  /* position: fixed; */
   bottom: 0;
   width: 100%;
   padding: 0.25rem;
@@ -299,12 +313,13 @@ a:visited {
   color: #fff;
 }
 
-/* Cards */
+/* Field Card */
 .hxb-field-card {
   width: calc(15rem + 8%);
   background-color: #fff;
   margin-left: -6%;
   padding-left: 6%;
+  padding-right: 0;
   padding-bottom: 1rem;
   border-radius: 0.3rem;
   margin-bottom: 2rem;
