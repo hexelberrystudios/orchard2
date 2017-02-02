@@ -8,13 +8,14 @@
         <field-card :fieldIndex="index" :removeField="removeField"></field-card>
       </template>
       <add-item-button></add-item-button>
-      <submit-button text="Add Item"></submit-button>
+      <submit-button text="Save"></submit-button>
     </form>
     <app-footer></app-footer>
   </div>
 </template>
 
 <script>
+  import { mapGetters } from 'vuex'
   import AppFooter from '../AppFooter.vue'
   import AppHeader from '../AppHeader.vue'
   import FieldCard from '../FieldCard.vue'
@@ -24,19 +25,17 @@
   
   export default {
     name: 'new-item-page',
-    data: function () {
-      return {
-        // fields are represented as an array of empty objects since the data gets managed in the
-        // form store, but we need to keep track of an ordered list of objects we can remove in the future
-        fields: [{}]
-      };
+    computed: {
+      ...mapGetters({
+        fields: 'fields/getFields'
+      })
     },
     methods: {
       addItem: function (e) {
         e.preventDefault();
       },
       removeField: function (fieldIndex) {
-        this.fields = this.fields.splice(fieldIndex, 1);
+        this.$store.dispatch('fields/removeField', fieldIndex);
       }
     },
     components: {

@@ -5,19 +5,20 @@ const fieldListModule = {
   // fields are represented as an array of empty objects since the data gets managed in the
   // form store, but we need to keep track of an ordered list of objects we can remove in the future
   state: { fields: [{}] },
+  getters: {
+    getFields: function (state) {
+      return state.fields;
+    }
+  },
   // directly update the store
   mutations: {
     // add field to list
-    ADD_FIELD: (state, field) => {
-      state.fields.push(field);
-    },
-    UPDATE_FIELD: (state, field) => {
-      state.fields[state.fields.indexOf(field)] = field;
+    ADD_FIELD: (state) => {
+      state.fields.push({});
     },
     // remove field from list
-    REMOVE_FIELD: (state, field) => {
-      // @NOTE: May not work with update field
-      state.fields = state.fields.splice(state.fields.indexOf(field), 1);
+    REMOVE_FIELD: (state, fieldIndex) => {
+      state.fields = state.fields.splice(fieldIndex, 1);
     }
   },
   // update the store event handler
