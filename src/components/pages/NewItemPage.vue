@@ -8,7 +8,9 @@
         <field-card :fieldIndex="index" :removeField="removeField"></field-card>
       </template>
       <add-item-button></add-item-button>
-      <submit-button text="Save"></submit-button>
+      <div class="hxb-form-field">
+        <submit-button text="Save"></submit-button>
+      </div>
     </form>
     <app-footer></app-footer>
   </div>
@@ -32,7 +34,39 @@
     },
     methods: {
       addItem: function (e) {
+        let name,
+          field,
+          idx;
+        let fields = [];
+        let form = this.$store.state.form.fields;
+
         e.preventDefault();
+        console.log(form);
+        // iterate through fields
+        for (field in form) {
+          console.log(field);
+          // let's make sure we only check the properties of the current object
+          if (form.hasOwnProperty(field)) {
+            // most fields end in _n, so get the index
+            idx = Number(field.charAt(field.length - 1));
+            console.log(idx);
+
+            // check for NaN
+            if (idx === idx) {
+              if (!fields[idx]) {
+                fields[idx] = {};
+              }
+              // if idx is a number, extract _n to get the field name and add it to
+              // the fields array
+              fields[idx][field.substr(0, field.length - 2)] = form[field];
+            } else {
+              name = form[field];
+            }
+          }
+        }
+
+        console.log(name);
+        console.log(fields);
       },
       removeField: function (fieldIndex) {
         console.log('Calling removeField in NewItemPage on index ' + fieldIndex);
@@ -50,3 +84,8 @@
   }
 </script>
 
+<style scoped>
+  .hxb-form-field > .hxb-button {
+    margin-left: calc(5.5rem + 2%);
+  }
+</style>

@@ -25,3 +25,4 @@ npm run dev
 - Update all form elements to use vuex
 - Add route event listener that clears the form object every time the route changes (maybe?)
 - Complete New Item Page
+- Bug: Field type loses an option every time it changes

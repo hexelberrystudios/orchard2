@@ -32,6 +32,10 @@
         ],
         fieldTypes: [
           {
+            label: '-- Select One --',
+            value: ''
+          },
+          {
             label: 'Text Field',
             value: 'text-field'
           },
