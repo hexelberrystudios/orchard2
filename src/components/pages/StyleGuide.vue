@@ -109,6 +109,23 @@
         <code id="choice_list" class="component-js"></code>
       </section>
     </article>
+    <article>
+      <header>
+        <h2 id="cards">Cards</h2>
+      </header>
+      <section id="field_card_doc">
+        <div class="hxb-form">
+          <field-card :fieldIndex="index" :removeField="removeField"></field-card>
+        </div>
+        <code id="field_card" class="component-js"></code>
+      </section>
+      <section id="add_item_button_doc">
+        <div class="hxb-form">
+          <add-item-button></add-item-button>
+        </div>
+        <code id="add_item_button" class="component-js"></code>
+      </section>
+    </article>
     <!-- TODO: Checklist -->
     <!-- TODO: Dropdowns -->
     <!-- TODO: Header -->
@@ -192,6 +209,8 @@
   import SubmitButton from '../SubmitButton.vue'
   import TextareaField from '../TextareaField.vue'
   import TextField from '../TextField.vue'
+  import FieldCard from '../FieldCard.vue'
+  import AddItemButton from '../AddItemButton.vue'
 
   if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', function (e) {
@@ -206,7 +225,9 @@
         radio_button_field: '<radio-button-field id="example_radio_button" label="Radio Buttons" options="radioButtonOptions"></radio-button-field>',
         dropdown_field: '<dropdown-field id="example_dropdown" label="Dropdown" options="dropdownOptions"></dropdown-field>',
         object_list: '<object-list objects="objectListObjects"></object-list>',
-        choice_list: '<choice-list choices="choiceListObjects"></choice-list>'
+        choice_list: '<choice-list choices="choiceListObjects"></choice-list>',
+        field_card: '<field-card :fieldIndex="index" :removeField="removeField"></field-card>',
+        add_item_button: '<add-item-button></add-item-button>'
       };
       for (i = 0; i < componentSource.length; i++) {
         componentSource[i].innerText = components[componentSource[i].getAttribute('id')];
@@ -225,6 +246,8 @@
       opt2.value = 'option_2';
 
       return {
+        index: 0,
+        removeField: function () {},
         radioButtonOptions: [opt1, opt2],
         dropdownOptions: [{ value: '', label: 'Select a value' }, { value: 'one', label: 'A value' }, { value: 'two', label: 'Another value' }],
         objectListObjects: [{ link: '#', label: 'One thing' }, { link: '#', label: 'Another thing' }, { link: '#', label: 'The best thing' }]
@@ -239,7 +262,9 @@
       RadioButtonField,
       SubmitButton,
       TextareaField,
-      TextField
+      TextField,
+      FieldCard,
+      AddItemButton
     }
   }
 </script>
