@@ -49,17 +49,18 @@
     methods: {
       remove () {
         // clean up the fields we're about to remove from the form
-        this.$store.dispatch('form/deleteField', {
+        this.$store.dispatch('form/removeField', {
           name: this.fieldLabel
         });
-        this.$store.dispatch('form/deleteField', {
+        this.$store.dispatch('form/removeField', {
           name: this.fieldType
         });
-        this.$store.dispatch('form/deleteField', {
+        this.$store.dispatch('form/removeField', {
           name: this.showInPreview
         });
         // tells the parent component that we've done the clean up necessary
         // to now remove this card
+        console.log('Calling removeField in FieldCard on index ' + this.fieldIndex);
         this.removeField(this.fieldIndex);
       }
     },

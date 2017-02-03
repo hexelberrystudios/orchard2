@@ -35,6 +35,7 @@
         e.preventDefault();
       },
       removeField: function (fieldIndex) {
+        console.log('Calling removeField in NewItemPage on index ' + fieldIndex);
         this.$store.dispatch('fields/removeField', fieldIndex);
       }
     },

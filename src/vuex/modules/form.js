@@ -20,6 +20,7 @@ const formModule = {
   // update the store event handler
   actions: {
     updateField ({ commit }, field) { commit('UPDATE_FIELD', field) },
+    removeField ({ commit }, field) { commit('REMOVE_FIELD', field) },
     resetForm ({ commit }) { commit('RESET_FORM') }
   }
 }

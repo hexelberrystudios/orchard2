@@ -18,7 +18,14 @@ const fieldListModule = {
     },
     // remove field from list
     REMOVE_FIELD: (state, fieldIndex) => {
-      state.fields = state.fields.splice(fieldIndex, 1);
+      if (typeof fieldIndex !== 'undefined') {
+        console.log('Removing index ' + fieldIndex);
+        console.log(state.fields);
+        state.fields = state.fields.splice(fieldIndex, 1);
+        console.log(state.fields);
+      } else {
+        throw new Error('fieldIndex undefined in fields/removeField');
+      }
     }
   },
   // update the store event handler
