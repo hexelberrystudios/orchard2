@@ -1,13 +1,11 @@
 <template>
   <div>
     <app-header></app-header>
-    <h1 class="hxb-u-pdl-1">Time to make a new template!</h1>
+    <h1 class="hxb-u-pdl-1">Time to make a new []!</h1>
     <form v-on:submit="addItem" name="new-item" method="POST" action="/new-item" class="hxb-form">
-      <text-field id="name" label="Name"></text-field>
       <template v-for="(field, index) in fields">
-        <field-card :fieldIndex="index" :removeField="removeField"></field-card>
+        
       </template>
-      <add-item-button></add-item-button>
       <div class="hxb-form-field">
         <submit-button text="Save"></submit-button>
       </div>
@@ -17,68 +15,28 @@
 </template>
 
 <script>
-  import { mapGetters } from 'vuex'
   import AppFooter from '../AppFooter.vue'
   import AppHeader from '../AppHeader.vue'
-  import FieldCard from '../FieldCard.vue'
-  import AddItemButton from '../AddItemButton.vue'
-  import TextField from '../TextField.vue'
   import SubmitButton from '../SubmitButton.vue'
   
   export default {
     name: 'new-item-page',
-    computed: {
-      ...mapGetters({
-        fields: 'fields/getFields'
-      })
-    },
     methods: {
       addItem: function (e) {
-        let name,
-          field,
-          idx;
-        let fields = [];
-        let form = this.$store.state.form.fields;
-
-        e.preventDefault();
-        console.log(form);
-        // iterate through fields
-        for (field in form) {
-          console.log(field);
-          // let's make sure we only check the properties of the current object
-          if (form.hasOwnProperty(field)) {
-            // most fields end in _n, so get the index
-            idx = Number(field.charAt(field.length - 1));
-            console.log(idx);
-
-            // check for NaN
-            if (idx === idx) {
-              if (!fields[idx]) {
-                fields[idx] = {};
-              }
-              // if idx is a number, extract _n to get the field name and add it to
-              // the fields array
-              fields[idx][field.substr(0, field.length - 2)] = form[field];
-            } else {
-              name = form[field];
-            }
+        /*
+        hoodie.ready.then(function () {
+          if (hoodie.account.isSignedIn()) {
+            hoodie.store.add({})
+          } else {
+            throw new Error('User is not currently signed in.');
           }
-        }
-
-        console.log(name);
-        console.log(fields);
-      },
-      removeField: function (fieldIndex) {
-        console.log('Calling removeField in NewItemPage on index ' + fieldIndex);
-        this.$store.dispatch('fields/removeField', fieldIndex);
+        });
+        */
       }
     },
     components: {
       AppHeader,
       AppFooter,
-      FieldCard,
-      AddItemButton,
-      TextField,
       SubmitButton
     }
   }

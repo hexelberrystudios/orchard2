@@ -80,6 +80,13 @@ const init = function (server) {
     },
     {
       method: 'GET',
+      path: '/new-template',
+      handler: function (request, reply) {
+        render.renderLayout(renderer, html, request, reply);
+      }
+    },
+    {
+      method: 'GET',
       path: '/style-guide',
       handler: function (request, reply) {
         render.renderLayout(renderer, html, request, reply);

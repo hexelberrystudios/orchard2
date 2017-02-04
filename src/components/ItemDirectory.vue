@@ -15,6 +15,17 @@
 
   export default {
     name: 'item-directory',
+    computed: function () {
+      hoodie.ready.then(function () {
+        hoodie.store.findAll()
+          .then((docs) => {
+            return docs.filter(doc => doc.itemName) // filter out docs that have no itemName field
+          })
+          .then((itemDocs) => {
+            // do your thing
+          })
+      })
+    },
     data: function () {
       return {
         items: [
