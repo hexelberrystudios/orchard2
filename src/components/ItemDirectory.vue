@@ -17,9 +17,15 @@
     name: 'item-directory',
     computed: function () {
       hoodie.ready.then(function () {
+        let self = this;
+        // look through the DB for all the items for the given bundle path
         hoodie.store.findAll()
           .then((docs) => {
-            return docs.filter(doc => doc.itemName) // filter out docs that have no itemName field
+            return docs.filter(function(doc) {
+              // check if the doc is an item, and if the doc is a part of a bundle,
+              // only include items that are part of the specified bundle path
+              return doc.itemName && (!doc.bundle || doc.bundles && doc.bundles.indexOf(self.path) !== -1)
+            })
           })
           .then((itemDocs) => {
             // do your thing

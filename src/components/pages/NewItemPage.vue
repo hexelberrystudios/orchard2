@@ -21,6 +21,18 @@
   
   export default {
     name: 'new-item-page',
+    computed: function () {
+      hoodie.ready.then(function () {
+        // look through the DB for all the templates
+        hoodie.store.findAll()
+          .then((docs) => {
+            return docs.filter(doc => doc.templateName) // filter out docs that have no templateName field
+          })
+          .then((templateDocs) => {
+            // do your thing
+          })
+      })
+    },
     methods: {
       addItem: function (e) {
         /*
