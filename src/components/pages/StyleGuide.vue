@@ -207,7 +207,7 @@
   import PrimaryButton from '../PrimaryButton.vue'
   import RadioButtonField from '../RadioButtonField.vue'
   import SubmitButton from '../SubmitButton.vue'
-  import TextareaField from '../TextareaField.vue'
+  import TextAreaField from '../TextAreaField.vue'
   import TextField from '../TextField.vue'
   import FieldCard from '../FieldCard.vue'
   import AddItemButton from '../AddItemButton.vue'
@@ -261,7 +261,7 @@
       PrimaryButton,
       RadioButtonField,
       SubmitButton,
-      TextareaField,
+      TextAreaField,
       TextField,
       FieldCard,
       AddItemButton

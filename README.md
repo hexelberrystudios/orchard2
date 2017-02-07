@@ -20,6 +20,25 @@ npm run dev
 ## Hoodie Setup
 ``` mkdir -p .hoodie/data/hoodie-config ```
 
+## Technologies/Concepts used
+
+Vue.js 2.0
+Vuex
+Hoodie
+PouchDB
+CouchDB
+Webpack
+ESLint
+Hapi
+Isomorphic Rendering
+
+## Technologies/Concepts in progress
+
+Service Workers
+Progressive Web App
+Progressive Enhancement (works without Javascript)
+Accessibility (AA compliance, research AAA compliance)
+
 ## CouchDB Views in Hoodie
 
 hoodie.store.findAll()
@@ -35,3 +54,4 @@ hoodie.store.findAll()
 - Update all form elements to use vuex
 - Add route event listener that clears the form object every time the route changes (maybe?)
 - Complete New Item Page
+- Generate uuid on the client/server for new hoodie items

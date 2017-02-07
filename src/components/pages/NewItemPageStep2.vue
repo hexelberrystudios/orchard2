@@ -1,10 +1,11 @@
 <template>
   <div>
     <app-header></app-header>
-    <h1 class="hxb-u-pdl-1">Time to make a new []!</h1>
-    <form v-on:submit="addItem" name="new-item" method="POST" action="/new-item" class="hxb-form">
-      <template v-for="(field, index) in fields">
-        
+    <h1 class="hxb-u-pdl-1">Time to add a new {{ template.name }}!</h1>
+    <form v-on:submit="addItem" name="new_item" method="POST" action="/new-item" class="hxb-form">
+      <text-field id="name" label="Name"></text-field>
+      <template v-for="field in template.fields">
+      
       </template>
       <div class="hxb-form-field">
         <submit-button text="Save"></submit-button>
@@ -20,16 +21,22 @@
   import SubmitButton from '../SubmitButton.vue'
   
   export default {
-    name: 'new-item-page',
-    computed: function () {
+    name: 'new-item-page-2',
+    data: {
+      fields: [],
+      template: {}
+    },
+    created: function () {
+      let templateId;
+      let self = this;
+
+      // get the template id from the url
+
       hoodie.ready.then(function () {
         // look through the DB for all the templates
-        hoodie.store.findAll()
-          .then((docs) => {
-            return docs.filter(doc => doc.templateName) // filter out docs that have no templateName field
-          })
-          .then((templateDocs) => {
-            // do your thing
+        hoodie.store.find(templateId)
+          .then((template) => {
+            self.template = template;
           })
       })
     },

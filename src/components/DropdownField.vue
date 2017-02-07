@@ -12,7 +12,11 @@
   import { mapState } from 'vuex'
   
   /*
-   * options {ARRAY} - [{ label: 'string', value: 'string' }, ...]
+   * This is a text field. It can be of type text, email, password, etc.
+   *
+   * @param {STRING} {REQUIRED} id       The id and name of this text field.
+   * @param {STRING} {REQUIRED} label    The label for this text field.
+   * @param {ARRAY}  {REQUIRED} options  An array containing the list of options, given in the format [{ label: 'string', value: 'string' }, ...]
    */
   export default {
     name: 'dropdown-field',
