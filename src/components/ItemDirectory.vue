@@ -21,6 +21,7 @@
       }
     },
     created: function () {
+      /*
       let self = this;
 
       hoodie.ready.then(function () {
@@ -38,6 +39,7 @@
             self.items = itemDocs;
           })
       })
+      */
     },
     components: {
       ObjectList

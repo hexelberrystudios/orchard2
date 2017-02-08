@@ -23,6 +23,7 @@ module.exports = {
     'no-trailing-spaces': 0
   },
   'globals': {
-    'hoodie': true
+    'hoodie': true,
+    'window': true
   }
 }

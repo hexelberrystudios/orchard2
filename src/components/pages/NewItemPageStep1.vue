@@ -13,32 +13,26 @@
 </template>
 
 <script>
+  import { mapGetters } from 'vuex'
   import AppFooter from '../AppFooter.vue'
   import AppHeader from '../AppHeader.vue'
   import DropdownField from '../DropdownField.vue'
   import SubmitButton from '../SubmitButton.vue'
   
+  const fetchInitialData = store => {
+    return store.dispatch('getTemplates')
+  }
+  
   export default {
     name: 'new-item-page-1',
-    data: function () {
-      return {
-        templates: []
-      }
-    },
-    created: function () {
-      let self = this;
-      
-      hoodie.ready.then(function () {
-        // look through the DB for all the templates
-        hoodie.store.findAll()
-          .then((docs) => {
-            return docs.filter(doc => doc.templateName) // filter out docs that have no templateName field
-          })
-          .then((templateDocs) => {
-            // do your thing
-            self.templates = templateDocs;
-          })
+    prefetch: fetchInitialData,
+    computed: {
+      ...mapGetters({
+        templates: 'getTemplates'
       })
+    },
+    mounted () {
+      fetchInitialData(this.$store)
     },
     components: {
       AppHeader,

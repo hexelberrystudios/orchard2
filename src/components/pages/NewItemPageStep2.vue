@@ -22,16 +22,18 @@
   
   export default {
     name: 'new-item-page-2',
-    data: {
-      fields: [],
-      template: {}
+    data: function () {
+      return {
+        fields: [],
+        template: {}
+      }
     },
     created: function () {
-      let templateId;
-      let self = this;
+      // let templateId;
+      // let self = this;
 
       // get the template id from the url
-
+      /*
       hoodie.ready.then(function () {
         // look through the DB for all the templates
         hoodie.store.find(templateId)
@@ -39,6 +41,7 @@
             self.template = template;
           })
       })
+      */
     },
     methods: {
       addItem: function (e) {

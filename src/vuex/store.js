@@ -9,6 +9,7 @@ Vue.use(Vuex)
 
 const defaultState = {
   topics: [],
+  templates: [],
   count: 0
 }
 
@@ -20,6 +21,10 @@ const state = (inBrowser && window.__INITIAL_STATE__) || defaultState
 const mutations = {
   TOPICS_LIST: (state, topics) => {
     state.topics = topics
+  },
+  
+  TEMPLATE_LIST: (state, templates) => {
+    state.templates = templates
   },
 
   INCREMENT: (state) => {
