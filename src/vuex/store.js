@@ -26,6 +26,10 @@ const mutations = {
   TEMPLATE_LIST: (state, templates) => {
     state.templates = templates
   },
+  
+  ACTIVE_TEMPLATE: (state, template) => {
+    state.activeTemplate = template
+  },
 
   INCREMENT: (state) => {
     state.count++
