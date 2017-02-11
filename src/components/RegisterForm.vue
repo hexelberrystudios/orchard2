@@ -1,5 +1,5 @@
 <template>
-  <form v-on:submit="register" name="register" method="post" action="/register" class="hxb-form">
+  <form v-on:submit="register" name="register" method="post" action="/app/register" class="hxb-form">
     <text-field id="username"
                 label="username"
                 type="text"
@@ -25,26 +25,28 @@
 
         // hoodie.account is not available until hoodie.ready (a promise) is resolved.
         hoodie.ready.then(function () {
-          // @TODO: Check if signing out is necessary before signing in
-          hoodie.account.signUp({
-            username: self.$store.state.form.fields.username,
-            password: self.$store.state.form.fields.password
-          }).then(function (accountProperties) {
-            // returns id, username, createdAt, updatedAt
-            console.log(accountProperties);
-            // account created! you aren't signed in yet, though
-            hoodie.account.signIn({
+          hoodie.account.ready.then(function () {
+            // @TODO: Check if signing out is necessary before signing in
+            hoodie.account.signUp({
               username: self.$store.state.form.fields.username,
               password: self.$store.state.form.fields.password
-            }).then(function (sessionProperties) {
-              // returns id, username, createdAt, updatedAt,
-              // and profile properties (i.e. fullname)
-              console.log(sessionProperties);
-              // redirect to the home page when finished
-              self.$router.push('/home');
+            }).then(function (accountProperties) {
+              // returns id, username, createdAt, updatedAt
+              console.log(accountProperties);
+              // account created! you aren't signed in yet, though
+              hoodie.account.signIn({
+                username: self.$store.state.form.fields.username,
+                password: self.$store.state.form.fields.password
+              }).then(function (sessionProperties) {
+                // returns id, username, createdAt, updatedAt,
+                // and profile properties (i.e. fullname)
+                console.log(sessionProperties);
+                // redirect to the home page when finished
+                self.$router.push('/app/home');
+              });
+            }).catch(function (err) {
+              console.log(err);
             });
-          }).catch(function (err) {
-            console.log(err);
           });
         });
       }

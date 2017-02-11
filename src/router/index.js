@@ -15,14 +15,14 @@ const router = new VueRouter({
   mode: 'history',
   base: __dirname,
   routes: [
-    { path: '/', component: LoginPage },
-    { path: '/register', component: RegisterPage },
-    { path: '/home', component: HomePage },
-    { path: '/new', component: NewPage },
-    { path: '/new-item', component: NewItemPageStep1 },
-    { path: '/new-item-page-2', component: NewItemPageStep2 },
-    { path: '/new-template', component: NewTemplatePage },
-    { path: '/style-guide', component: StyleGuide }
+    { path: '/app', component: LoginPage },
+    { path: '/app/register', component: RegisterPage },
+    { path: '/app/home', component: HomePage },
+    { path: '/app/new', component: NewPage },
+    { path: '/app/new-item', component: NewItemPageStep1 },
+    { path: '/app/new-item-page-2', component: NewItemPageStep2 },
+    { path: '/app/new-template', component: NewTemplatePage },
+    { path: '/app/style-guide', component: StyleGuide }
   ]
 })
 

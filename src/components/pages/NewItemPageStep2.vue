@@ -2,7 +2,7 @@
   <div>
     <app-header></app-header>
     <h1 class="hxb-u-pdl-1" v-if="template">Time to add a new {{ template.name }}!</h1>
-    <form v-on:submit="addItem" name="new_item" method="POST" action="/new-item" class="hxb-form">
+    <form v-on:submit="addItem" name="new_item" method="POST" action="/app/new-item" class="hxb-form">
       <text-field id="name" label="Name"></text-field>
       <template v-for="field in template.fields">
       

@@ -45,60 +45,11 @@ const init = function (server) {
   return [
     {
       method: 'GET',
-      path: '/',
+      path: '/app/{file*}',
       handler: function (request, reply) {
         render.renderLayout(renderer, html, request, reply);
       }
-    },
-    {
-      method: 'GET',
-      path: '/register',
-      handler: function (request, reply) {
-        render.renderLayout(renderer, html, request, reply);
-      }
-    },
-    {
-      method: 'GET',
-      path: '/home',
-      handler: function (request, reply) {
-        render.renderLayout(renderer, html, request, reply);
-      }
-    },
-    {
-      method: 'GET',
-      path: '/new',
-      handler: function (request, reply) {
-        render.renderLayout(renderer, html, request, reply);
-      }
-    },
-    {
-      method: 'GET',
-      path: '/new-item',
-      handler: function (request, reply) {
-        render.renderLayout(renderer, html, request, reply);
-      }
-    },
-    {
-      method: 'GET',
-      path: '/new-item-page-2',
-      handler: function (request, reply) {
-        render.renderLayout(renderer, html, request, reply);
-      }
-    },
-    {
-      method: 'GET',
-      path: '/new-template',
-      handler: function (request, reply) {
-        render.renderLayout(renderer, html, request, reply);
-      }
-    },
-    {
-      method: 'GET',
-      path: '/style-guide',
-      handler: function (request, reply) {
-        render.renderLayout(renderer, html, request, reply);
-      }
-    },
+    }
   ];
 }
 

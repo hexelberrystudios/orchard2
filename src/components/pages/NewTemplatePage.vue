@@ -2,7 +2,7 @@
   <div>
     <app-header></app-header>
     <h1 class="hxb-u-pdl-1">Time to make a new template!</h1>
-    <form v-on:submit="addTemplate" name="new-template" method="POST" action="/new-template" class="hxb-form">
+    <form v-on:submit="addTemplate" name="new-template" method="POST" action="/app/new-template" class="hxb-form">
       <text-field id="name" label="Name"></text-field>
       <template v-for="(field, index) in fields">
         <field-card :fieldIndex="index" :removeField="removeField"></field-card>

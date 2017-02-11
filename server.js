@@ -43,7 +43,7 @@ server.register(require('inert'), function (error) {
 
   server.route({
     method: 'GET',
-    path: '/public/{file*}',
+    path: '/static/{file*}',
     handler: {
       directory: {
         path: 'public',
@@ -68,6 +68,7 @@ server.register({
   register: hoodie,
   options: { // pass options here
     inMemory: true,
+    adminPassword: 'secret',
     paths: {
       public: 'dist'
     }

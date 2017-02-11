@@ -19,15 +19,15 @@
         objects: [
           {
             label: 'Item',
-            link: '/new-item'
+            link: '/app/new-item'
           },
           {
             label: 'Template',
-            link: '/new-template'
+            link: '/app/new-template'
           },
           {
             label: 'Bundle',
-            link: '/new-bundle'
+            link: '/app/new-bundle'
           }
         ],
         isIndented: true

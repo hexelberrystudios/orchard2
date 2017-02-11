@@ -3,7 +3,7 @@
     <app-header></app-header>
     <h1 class="hxb-u-pdl-1 hxb-u-txt-center" v-if="!areTemplatesLoaded()">Loading...</h1>
     <h1 class="hxb-u-pdl-1" v-if="templates.length > 0">What would you like to organize today?</h1>
-    <form name="set_template" method="GET" action="/new-item-page-2" class="hxb-form" v-if="templates.length > 0">
+    <form name="set_template" method="GET" action="/app/new-item-page-2" class="hxb-form" v-if="templates.length > 0">
       <dropdown-field id="templates" label="Select a template" :options="templates"></dropdown-field>
       <div class="hxb-form-field">
         <submit-button text="Save"></submit-button>

@@ -1,9 +1,9 @@
 <template>
-  <form name="login" method="post" action="/login" class="hxb-form">
+  <form name="login" method="post" action="/app/login" class="hxb-form">
     <text-field id="username" label="username" type="text" placeholder="username"></text-field>
     <text-field id="password" label="password" type="password" placeholder="password"></text-field>
     <submit-button text="Login"></submit-button>
-    <router-link to="/register" exact>or Register</router-link>
+    <router-link to="/app/register" exact>or Register</router-link>
   </form>
 </template>
 

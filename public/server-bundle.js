@@ -64,39 +64,774 @@ module.exports =
 /******/ 	__webpack_require__.p = "/public/";
 
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 54);
+/******/ 	return __webpack_require__(__webpack_require__.s = 89);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var __vue_exports__, __vue_options__
-var __vue_styles__ = {}
+/**
+ * vuex v2.1.1
+ * (c) 2016 Evan You
+ * @license MIT
+ */
+(function (global, factory) {
+   true ? module.exports = factory() :
+  typeof define === 'function' && define.amd ? define(factory) :
+  (global.Vuex = factory());
+}(this, (function () { 'use strict';
 
-/* script */
-__vue_exports__ = __webpack_require__(19)
+var devtoolHook =
+  typeof window !== 'undefined' &&
+  window.__VUE_DEVTOOLS_GLOBAL_HOOK__
 
-/* template */
-var __vue_template__ = __webpack_require__(37)
-__vue_options__ = __vue_exports__ = __vue_exports__ || {}
-if (
-  typeof __vue_exports__.default === "object" ||
-  typeof __vue_exports__.default === "function"
-) {
-__vue_options__ = __vue_exports__ = __vue_exports__.default
+function devtoolPlugin (store) {
+  if (!devtoolHook) { return }
+
+  store._devtoolHook = devtoolHook
+
+  devtoolHook.emit('vuex:init', store)
+
+  devtoolHook.on('vuex:travel-to-state', function (targetState) {
+    store.replaceState(targetState)
+  })
+
+  store.subscribe(function (mutation, state) {
+    devtoolHook.emit('vuex:mutation', mutation, state)
+  })
 }
-if (typeof __vue_options__ === "function") {
-  __vue_options__ = __vue_options__.options
+
+function applyMixin (Vue) {
+  var version = Number(Vue.version.split('.')[0])
+
+  if (version >= 2) {
+    var usesInit = Vue.config._lifecycleHooks.indexOf('init') > -1
+    Vue.mixin(usesInit ? { init: vuexInit } : { beforeCreate: vuexInit })
+  } else {
+    // override init and inject vuex init procedure
+    // for 1.x backwards compatibility.
+    var _init = Vue.prototype._init
+    Vue.prototype._init = function (options) {
+      if ( options === void 0 ) options = {};
+
+      options.init = options.init
+        ? [vuexInit].concat(options.init)
+        : vuexInit
+      _init.call(this, options)
+    }
+  }
+
+  /**
+   * Vuex init hook, injected into each instances init hooks list.
+   */
+
+  function vuexInit () {
+    var options = this.$options
+    // store injection
+    if (options.store) {
+      this.$store = options.store
+    } else if (options.parent && options.parent.$store) {
+      this.$store = options.parent.$store
+    }
+  }
 }
 
-if(typeof __vue_options__.name === "undefined") {
-  __vue_options__.name = "SubmitButton"
-}__vue_options__.render = __vue_template__.render
-__vue_options__.staticRenderFns = __vue_template__.staticRenderFns
+var mapState = normalizeNamespace(function (namespace, states) {
+  var res = {}
+  normalizeMap(states).forEach(function (ref) {
+    var key = ref.key;
+    var val = ref.val;
 
-module.exports = __vue_exports__
+    res[key] = function mappedState () {
+      var state = this.$store.state
+      var getters = this.$store.getters
+      if (namespace) {
+        var module = this.$store._modulesNamespaceMap[namespace]
+        if (!module) {
+          warnNamespace('mapState', namespace)
+          return
+        }
+        state = module.state
+        getters = module.context.getters
+      }
+      return typeof val === 'function'
+        ? val.call(this, state, getters)
+        : state[val]
+    }
+  })
+  return res
+})
 
+var mapMutations = normalizeNamespace(function (namespace, mutations) {
+  var res = {}
+  normalizeMap(mutations).forEach(function (ref) {
+    var key = ref.key;
+    var val = ref.val;
+
+    val = namespace + val
+    res[key] = function mappedMutation () {
+      var args = [], len = arguments.length;
+      while ( len-- ) args[ len ] = arguments[ len ];
+
+      return this.$store.commit.apply(this.$store, [val].concat(args))
+    }
+  })
+  return res
+})
+
+var mapGetters = normalizeNamespace(function (namespace, getters) {
+  var res = {}
+  normalizeMap(getters).forEach(function (ref) {
+    var key = ref.key;
+    var val = ref.val;
+
+    val = namespace + val
+    res[key] = function mappedGetter () {
+      if (!(val in this.$store.getters)) {
+        console.error(("[vuex] unknown getter: " + val))
+      }
+      return this.$store.getters[val]
+    }
+  })
+  return res
+})
+
+var mapActions = normalizeNamespace(function (namespace, actions) {
+  var res = {}
+  normalizeMap(actions).forEach(function (ref) {
+    var key = ref.key;
+    var val = ref.val;
+
+    val = namespace + val
+    res[key] = function mappedAction () {
+      var args = [], len = arguments.length;
+      while ( len-- ) args[ len ] = arguments[ len ];
+
+      return this.$store.dispatch.apply(this.$store, [val].concat(args))
+    }
+  })
+  return res
+})
+
+function normalizeMap (map) {
+  return Array.isArray(map)
+    ? map.map(function (key) { return ({ key: key, val: key }); })
+    : Object.keys(map).map(function (key) { return ({ key: key, val: map[key] }); })
+}
+
+function normalizeNamespace (fn) {
+  return function (namespace, map) {
+    if (typeof namespace !== 'string') {
+      map = namespace
+      namespace = ''
+    } else if (namespace.charAt(namespace.length - 1) !== '/') {
+      namespace += '/'
+    }
+    return fn(namespace, map)
+  }
+}
+
+function warnNamespace (helper, namespace) {
+  console.error(("[vuex] module namespace not found in " + helper + "(): " + namespace))
+}
+
+/**
+ * forEach for object
+ */
+function forEachValue (obj, fn) {
+  Object.keys(obj).forEach(function (key) { return fn(obj[key], key); })
+}
+
+function isObject (obj) {
+  return obj !== null && typeof obj === 'object'
+}
+
+function isPromise (val) {
+  return val && typeof val.then === 'function'
+}
+
+function assert (condition, msg) {
+  if (!condition) { throw new Error(("[vuex] " + msg)) }
+}
+
+var Module = function Module (rawModule, runtime) {
+  this.runtime = runtime
+  this._children = Object.create(null)
+  this._rawModule = rawModule
+};
+
+var prototypeAccessors$1 = { state: {},namespaced: {} };
+
+prototypeAccessors$1.state.get = function () {
+  return this._rawModule.state || {}
+};
+
+prototypeAccessors$1.namespaced.get = function () {
+  return !!this._rawModule.namespaced
+};
+
+Module.prototype.addChild = function addChild (key, module) {
+  this._children[key] = module
+};
+
+Module.prototype.removeChild = function removeChild (key) {
+  delete this._children[key]
+};
+
+Module.prototype.getChild = function getChild (key) {
+  return this._children[key]
+};
+
+Module.prototype.update = function update (rawModule) {
+  this._rawModule.namespaced = rawModule.namespaced
+  if (rawModule.actions) {
+    this._rawModule.actions = rawModule.actions
+  }
+  if (rawModule.mutations) {
+    this._rawModule.mutations = rawModule.mutations
+  }
+  if (rawModule.getters) {
+    this._rawModule.getters = rawModule.getters
+  }
+};
+
+Module.prototype.forEachChild = function forEachChild (fn) {
+  forEachValue(this._children, fn)
+};
+
+Module.prototype.forEachGetter = function forEachGetter (fn) {
+  if (this._rawModule.getters) {
+    forEachValue(this._rawModule.getters, fn)
+  }
+};
+
+Module.prototype.forEachAction = function forEachAction (fn) {
+  if (this._rawModule.actions) {
+    forEachValue(this._rawModule.actions, fn)
+  }
+};
+
+Module.prototype.forEachMutation = function forEachMutation (fn) {
+  if (this._rawModule.mutations) {
+    forEachValue(this._rawModule.mutations, fn)
+  }
+};
+
+Object.defineProperties( Module.prototype, prototypeAccessors$1 );
+
+var ModuleCollection = function ModuleCollection (rawRootModule) {
+  var this$1 = this;
+
+  // register root module (Vuex.Store options)
+  this.root = new Module(rawRootModule, false)
+
+  // register all nested modules
+  if (rawRootModule.modules) {
+    forEachValue(rawRootModule.modules, function (rawModule, key) {
+      this$1.register([key], rawModule, false)
+    })
+  }
+};
+
+ModuleCollection.prototype.get = function get (path) {
+  return path.reduce(function (module, key) {
+    return module.getChild(key)
+  }, this.root)
+};
+
+ModuleCollection.prototype.getNamespace = function getNamespace (path) {
+  var module = this.root
+  return path.reduce(function (namespace, key) {
+    module = module.getChild(key)
+    return namespace + (module.namespaced ? key + '/' : '')
+  }, '')
+};
+
+ModuleCollection.prototype.update = function update$1 (rawRootModule) {
+  update(this.root, rawRootModule)
+};
+
+ModuleCollection.prototype.register = function register (path, rawModule, runtime) {
+    var this$1 = this;
+    if ( runtime === void 0 ) runtime = true;
+
+  var parent = this.get(path.slice(0, -1))
+  var newModule = new Module(rawModule, runtime)
+  parent.addChild(path[path.length - 1], newModule)
+
+  // register nested modules
+  if (rawModule.modules) {
+    forEachValue(rawModule.modules, function (rawChildModule, key) {
+      this$1.register(path.concat(key), rawChildModule, runtime)
+    })
+  }
+};
+
+ModuleCollection.prototype.unregister = function unregister (path) {
+  var parent = this.get(path.slice(0, -1))
+  var key = path[path.length - 1]
+  if (!parent.getChild(key).runtime) { return }
+
+  parent.removeChild(key)
+};
+
+function update (targetModule, newModule) {
+  // update target module
+  targetModule.update(newModule)
+
+  // update nested modules
+  if (newModule.modules) {
+    for (var key in newModule.modules) {
+      if (!targetModule.getChild(key)) {
+        console.warn(
+          "[vuex] trying to add a new module '" + key + "' on hot reloading, " +
+          'manual reload is needed'
+        )
+        return
+      }
+      update(targetModule.getChild(key), newModule.modules[key])
+    }
+  }
+}
+
+var Vue // bind on install
+
+var Store = function Store (options) {
+  var this$1 = this;
+  if ( options === void 0 ) options = {};
+
+  assert(Vue, "must call Vue.use(Vuex) before creating a store instance.")
+  assert(typeof Promise !== 'undefined', "vuex requires a Promise polyfill in this browser.")
+
+  var state = options.state; if ( state === void 0 ) state = {};
+  var plugins = options.plugins; if ( plugins === void 0 ) plugins = [];
+  var strict = options.strict; if ( strict === void 0 ) strict = false;
+
+  // store internal state
+  this._committing = false
+  this._actions = Object.create(null)
+  this._mutations = Object.create(null)
+  this._wrappedGetters = Object.create(null)
+  this._modules = new ModuleCollection(options)
+  this._modulesNamespaceMap = Object.create(null)
+  this._subscribers = []
+  this._watcherVM = new Vue()
+
+  // bind commit and dispatch to self
+  var store = this
+  var ref = this;
+  var dispatch = ref.dispatch;
+  var commit = ref.commit;
+    this.dispatch = function boundDispatch (type, payload) {
+    return dispatch.call(store, type, payload)
+  }
+  this.commit = function boundCommit (type, payload, options) {
+    return commit.call(store, type, payload, options)
+    }
+
+    // strict mode
+  this.strict = strict
+
+  // init root module.
+  // this also recursively registers all sub-modules
+  // and collects all module getters inside this._wrappedGetters
+  installModule(this, state, [], this._modules.root)
+
+  // initialize the store vm, which is responsible for the reactivity
+  // (also registers _wrappedGetters as computed properties)
+  resetStoreVM(this, state)
+
+  // apply plugins
+  plugins.concat(devtoolPlugin).forEach(function (plugin) { return plugin(this$1); })
+};
+
+var prototypeAccessors = { state: {} };
+
+prototypeAccessors.state.get = function () {
+  return this._vm.$data.state
+};
+
+prototypeAccessors.state.set = function (v) {
+  assert(false, "Use store.replaceState() to explicit replace store state.")
+};
+
+Store.prototype.commit = function commit (_type, _payload, _options) {
+    var this$1 = this;
+
+  // check object-style commit
+  var ref = unifyObjectStyle(_type, _payload, _options);
+    var type = ref.type;
+    var payload = ref.payload;
+    var options = ref.options;
+
+  var mutation = { type: type, payload: payload }
+  var entry = this._mutations[type]
+  if (!entry) {
+    console.error(("[vuex] unknown mutation type: " + type))
+    return
+  }
+  this._withCommit(function () {
+    entry.forEach(function commitIterator (handler) {
+      handler(payload)
+    })
+  })
+  this._subscribers.forEach(function (sub) { return sub(mutation, this$1.state); })
+
+  if (options && options.silent) {
+    console.warn(
+      "[vuex] mutation type: " + type + ". Silent option has been removed. " +
+      'Use the filter functionality in the vue-devtools'
+    )
+  }
+};
+
+Store.prototype.dispatch = function dispatch (_type, _payload) {
+  // check object-style dispatch
+  var ref = unifyObjectStyle(_type, _payload);
+    var type = ref.type;
+    var payload = ref.payload;
+
+  var entry = this._actions[type]
+  if (!entry) {
+    console.error(("[vuex] unknown action type: " + type))
+    return
+  }
+  return entry.length > 1
+    ? Promise.all(entry.map(function (handler) { return handler(payload); }))
+    : entry[0](payload)
+};
+
+Store.prototype.subscribe = function subscribe (fn) {
+  var subs = this._subscribers
+  if (subs.indexOf(fn) < 0) {
+    subs.push(fn)
+  }
+  return function () {
+    var i = subs.indexOf(fn)
+    if (i > -1) {
+      subs.splice(i, 1)
+    }
+  }
+};
+
+Store.prototype.watch = function watch (getter, cb, options) {
+    var this$1 = this;
+
+  assert(typeof getter === 'function', "store.watch only accepts a function.")
+  return this._watcherVM.$watch(function () { return getter(this$1.state, this$1.getters); }, cb, options)
+};
+
+Store.prototype.replaceState = function replaceState (state) {
+    var this$1 = this;
+
+  this._withCommit(function () {
+    this$1._vm.state = state
+  })
+};
+
+Store.prototype.registerModule = function registerModule (path, rawModule) {
+  if (typeof path === 'string') { path = [path] }
+  assert(Array.isArray(path), "module path must be a string or an Array.")
+  this._modules.register(path, rawModule)
+  installModule(this, this.state, path, this._modules.get(path))
+  // reset store to update getters...
+  resetStoreVM(this, this.state)
+};
+
+Store.prototype.unregisterModule = function unregisterModule (path) {
+    var this$1 = this;
+
+  if (typeof path === 'string') { path = [path] }
+  assert(Array.isArray(path), "module path must be a string or an Array.")
+    this._modules.unregister(path)
+  this._withCommit(function () {
+    var parentState = getNestedState(this$1.state, path.slice(0, -1))
+    Vue.delete(parentState, path[path.length - 1])
+  })
+  resetStore(this)
+};
+
+Store.prototype.hotUpdate = function hotUpdate (newOptions) {
+  this._modules.update(newOptions)
+  resetStore(this)
+};
+
+Store.prototype._withCommit = function _withCommit (fn) {
+  var committing = this._committing
+  this._committing = true
+  fn()
+  this._committing = committing
+};
+
+Object.defineProperties( Store.prototype, prototypeAccessors );
+
+function resetStore (store) {
+  store._actions = Object.create(null)
+  store._mutations = Object.create(null)
+  store._wrappedGetters = Object.create(null)
+  store._modulesNamespaceMap = Object.create(null)
+  var state = store.state
+  // init all modules
+  installModule(store, state, [], store._modules.root, true)
+  // reset vm
+  resetStoreVM(store, state)
+}
+
+function resetStoreVM (store, state) {
+  var oldVm = store._vm
+
+  // bind store public getters
+  store.getters = {}
+  var wrappedGetters = store._wrappedGetters
+  var computed = {}
+  forEachValue(wrappedGetters, function (fn, key) {
+    // use computed to leverage its lazy-caching mechanism
+    computed[key] = function () { return fn(store); }
+    Object.defineProperty(store.getters, key, {
+      get: function () { return store._vm[key]; },
+      enumerable: true // for local getters
+    })
+  })
+
+  // use a Vue instance to store the state tree
+  // suppress warnings just in case the user has added
+  // some funky global mixins
+  var silent = Vue.config.silent
+  Vue.config.silent = true
+  store._vm = new Vue({
+    data: { state: state },
+    computed: computed
+  })
+  Vue.config.silent = silent
+
+  // enable strict mode for new vm
+  if (store.strict) {
+    enableStrictMode(store)
+  }
+
+  if (oldVm) {
+    // dispatch changes in all subscribed watchers
+    // to force getter re-evaluation.
+    store._withCommit(function () {
+      oldVm.state = null
+    })
+    Vue.nextTick(function () { return oldVm.$destroy(); })
+  }
+}
+
+function installModule (store, rootState, path, module, hot) {
+  var isRoot = !path.length
+  var namespace = store._modules.getNamespace(path)
+
+  // register in namespace map
+  if (namespace) {
+    store._modulesNamespaceMap[namespace] = module
+  }
+
+  // set state
+  if (!isRoot && !hot) {
+    var parentState = getNestedState(rootState, path.slice(0, -1))
+    var moduleName = path[path.length - 1]
+    store._withCommit(function () {
+      Vue.set(parentState, moduleName, module.state)
+    })
+  }
+
+  var local = module.context = makeLocalContext(store, namespace)
+
+  module.forEachMutation(function (mutation, key) {
+    var namespacedType = namespace + key
+    registerMutation(store, namespacedType, mutation, path)
+  })
+
+  module.forEachAction(function (action, key) {
+    var namespacedType = namespace + key
+    registerAction(store, namespacedType, action, local, path)
+  })
+
+  module.forEachGetter(function (getter, key) {
+    var namespacedType = namespace + key
+    registerGetter(store, namespacedType, getter, local, path)
+  })
+
+  module.forEachChild(function (child, key) {
+    installModule(store, rootState, path.concat(key), child, hot)
+  })
+}
+
+/**
+ * make localized dispatch, commit and getters
+ * if there is no namespace, just use root ones
+ */
+function makeLocalContext (store, namespace) {
+  var noNamespace = namespace === ''
+
+  var local = {
+    dispatch: noNamespace ? store.dispatch : function (_type, _payload, _options) {
+      var args = unifyObjectStyle(_type, _payload, _options)
+      var payload = args.payload;
+      var options = args.options;
+      var type = args.type;
+
+      if (!options || !options.root) {
+        type = namespace + type
+        if (!store._actions[type]) {
+          console.error(("[vuex] unknown local action type: " + (args.type) + ", global type: " + type))
+          return
+        }
+      }
+
+      return store.dispatch(type, payload)
+    },
+
+    commit: noNamespace ? store.commit : function (_type, _payload, _options) {
+      var args = unifyObjectStyle(_type, _payload, _options)
+      var payload = args.payload;
+      var options = args.options;
+      var type = args.type;
+
+      if (!options || !options.root) {
+        type = namespace + type
+        if (!store._mutations[type]) {
+          console.error(("[vuex] unknown local mutation type: " + (args.type) + ", global type: " + type))
+          return
+        }
+      }
+
+      store.commit(type, payload, options)
+    }
+  }
+
+  // getters object must be gotten lazily
+  // because store.getters will be changed by vm update
+  Object.defineProperty(local, 'getters', {
+    get: noNamespace ? function () { return store.getters; } : function () { return makeLocalGetters(store, namespace); }
+  })
+
+  return local
+}
+
+function makeLocalGetters (store, namespace) {
+  var gettersProxy = {}
+
+  var splitPos = namespace.length
+  Object.keys(store.getters).forEach(function (type) {
+    // skip if the target getter is not match this namespace
+    if (type.slice(0, splitPos) !== namespace) { return }
+
+    // extract local getter type
+    var localType = type.slice(splitPos)
+
+    // Add a port to the getters proxy.
+    // Define as getter property because
+    // we do not want to evaluate the getters in this time.
+    Object.defineProperty(gettersProxy, localType, {
+      get: function () { return store.getters[type]; },
+      enumerable: true
+    })
+  })
+
+  return gettersProxy
+}
+
+function registerMutation (store, type, handler, path) {
+  var entry = store._mutations[type] || (store._mutations[type] = [])
+  entry.push(function wrappedMutationHandler (payload) {
+    handler(getNestedState(store.state, path), payload)
+  })
+}
+
+function registerAction (store, type, handler, local, path) {
+  var entry = store._actions[type] || (store._actions[type] = [])
+  entry.push(function wrappedActionHandler (payload, cb) {
+    var res = handler({
+      dispatch: local.dispatch,
+      commit: local.commit,
+      getters: local.getters,
+      state: getNestedState(store.state, path),
+      rootGetters: store.getters,
+      rootState: store.state
+    }, payload, cb)
+    if (!isPromise(res)) {
+      res = Promise.resolve(res)
+    }
+    if (store._devtoolHook) {
+      return res.catch(function (err) {
+        store._devtoolHook.emit('vuex:error', err)
+        throw err
+      })
+    } else {
+      return res
+    }
+  })
+}
+
+function registerGetter (store, type, rawGetter, local, path) {
+  if (store._wrappedGetters[type]) {
+    console.error(("[vuex] duplicate getter key: " + type))
+    return
+  }
+  store._wrappedGetters[type] = function wrappedGetter (store) {
+    return rawGetter(
+      getNestedState(store.state, path), // local state
+      local.getters, // local getters
+      store.state, // root state
+      store.getters // root getters
+    )
+  }
+}
+
+function enableStrictMode (store) {
+  store._vm.$watch('state', function () {
+    assert(store._committing, "Do not mutate vuex store state outside mutation handlers.")
+  }, { deep: true, sync: true })
+}
+
+function getNestedState (state, path) {
+  return path.length
+    ? path.reduce(function (state, key) { return state[key]; }, state)
+    : state
+}
+
+function unifyObjectStyle (type, payload, options) {
+  if (isObject(type) && type.type) {
+    options = payload
+    payload = type
+    type = type.type
+  }
+  return { type: type, payload: payload, options: options }
+}
+
+function install (_Vue) {
+  if (Vue) {
+    console.error(
+      '[vuex] already installed. Vue.use(Vuex) should be called only once.'
+    )
+    return
+  }
+  Vue = _Vue
+  applyMixin(Vue)
+}
+
+// auto install in dist mode
+if (typeof window !== 'undefined' && window.Vue) {
+  install(window.Vue)
+}
+
+var index = {
+  Store: Store,
+  install: install,
+  version: '2.1.1',
+  mapState: mapState,
+  mapMutations: mapMutations,
+  mapGetters: mapGetters,
+  mapActions: mapActions
+}
+
+return index;
+
+})));
 
 /***/ }),
 /* 1 */
@@ -106,10 +841,10 @@ var __vue_exports__, __vue_options__
 var __vue_styles__ = {}
 
 /* script */
-__vue_exports__ = __webpack_require__(21)
+__vue_exports__ = __webpack_require__(32)
 
 /* template */
-var __vue_template__ = __webpack_require__(49)
+var __vue_template__ = __webpack_require__(64)
 __vue_options__ = __vue_exports__ = __vue_exports__ || {}
 if (
   typeof __vue_exports__.default === "object" ||
@@ -121,9 +856,7 @@ if (typeof __vue_options__ === "function") {
   __vue_options__ = __vue_options__.options
 }
 
-if(typeof __vue_options__.name === "undefined") {
-  __vue_options__.name = "TextField"
-}__vue_options__.render = __vue_template__.render
+__vue_options__.render = __vue_template__.render
 __vue_options__.staticRenderFns = __vue_template__.staticRenderFns
 
 module.exports = __vue_exports__
@@ -131,6 +864,151 @@ module.exports = __vue_exports__
 
 /***/ }),
 /* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __vue_exports__, __vue_options__
+var __vue_styles__ = {}
+
+/* script */
+__vue_exports__ = __webpack_require__(19)
+
+/* template */
+var __vue_template__ = __webpack_require__(60)
+__vue_options__ = __vue_exports__ = __vue_exports__ || {}
+if (
+  typeof __vue_exports__.default === "object" ||
+  typeof __vue_exports__.default === "function"
+) {
+__vue_options__ = __vue_exports__ = __vue_exports__.default
+}
+if (typeof __vue_options__ === "function") {
+  __vue_options__ = __vue_options__.options
+}
+
+__vue_options__.render = __vue_template__.render
+__vue_options__.staticRenderFns = __vue_template__.staticRenderFns
+
+module.exports = __vue_exports__
+
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __vue_exports__, __vue_options__
+var __vue_styles__ = {}
+
+/* script */
+__vue_exports__ = __webpack_require__(20)
+
+/* template */
+var __vue_template__ = __webpack_require__(62)
+__vue_options__ = __vue_exports__ = __vue_exports__ || {}
+if (
+  typeof __vue_exports__.default === "object" ||
+  typeof __vue_exports__.default === "function"
+) {
+__vue_options__ = __vue_exports__ = __vue_exports__.default
+}
+if (typeof __vue_options__ === "function") {
+  __vue_options__ = __vue_options__.options
+}
+
+__vue_options__.render = __vue_template__.render
+__vue_options__.staticRenderFns = __vue_template__.staticRenderFns
+
+module.exports = __vue_exports__
+
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __vue_exports__, __vue_options__
+var __vue_styles__ = {}
+
+/* script */
+__vue_exports__ = __webpack_require__(34)
+
+/* template */
+var __vue_template__ = __webpack_require__(77)
+__vue_options__ = __vue_exports__ = __vue_exports__ || {}
+if (
+  typeof __vue_exports__.default === "object" ||
+  typeof __vue_exports__.default === "function"
+) {
+__vue_options__ = __vue_exports__ = __vue_exports__.default
+}
+if (typeof __vue_options__ === "function") {
+  __vue_options__ = __vue_options__.options
+}
+
+__vue_options__.render = __vue_template__.render
+__vue_options__.staticRenderFns = __vue_template__.staticRenderFns
+
+module.exports = __vue_exports__
+
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __vue_exports__, __vue_options__
+var __vue_styles__ = {}
+
+/* script */
+__vue_exports__ = __webpack_require__(23)
+
+/* template */
+var __vue_template__ = __webpack_require__(83)
+__vue_options__ = __vue_exports__ = __vue_exports__ || {}
+if (
+  typeof __vue_exports__.default === "object" ||
+  typeof __vue_exports__.default === "function"
+) {
+__vue_options__ = __vue_exports__ = __vue_exports__.default
+}
+if (typeof __vue_options__ === "function") {
+  __vue_options__ = __vue_options__.options
+}
+
+__vue_options__.render = __vue_template__.render
+__vue_options__.staticRenderFns = __vue_template__.staticRenderFns
+
+module.exports = __vue_exports__
+
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __vue_exports__, __vue_options__
+var __vue_styles__ = {}
+
+/* script */
+__vue_exports__ = __webpack_require__(27)
+
+/* template */
+var __vue_template__ = __webpack_require__(75)
+__vue_options__ = __vue_exports__ = __vue_exports__ || {}
+if (
+  typeof __vue_exports__.default === "object" ||
+  typeof __vue_exports__.default === "function"
+) {
+__vue_options__ = __vue_exports__ = __vue_exports__.default
+}
+if (typeof __vue_options__ === "function") {
+  __vue_options__ = __vue_options__.options
+}
+
+__vue_options__.render = __vue_template__.render
+__vue_options__.staticRenderFns = __vue_template__.staticRenderFns
+
+module.exports = __vue_exports__
+
+
+/***/ }),
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6339,17 +7217,104 @@ module.exports = Vue$2;
 
 
 /***/ }),
-/* 3 */
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __vue_exports__, __vue_options__
+var __vue_styles__ = {}
+
+/* script */
+__vue_exports__ = __webpack_require__(18)
+
+/* template */
+var __vue_template__ = __webpack_require__(80)
+__vue_options__ = __vue_exports__ = __vue_exports__ || {}
+if (
+  typeof __vue_exports__.default === "object" ||
+  typeof __vue_exports__.default === "function"
+) {
+__vue_options__ = __vue_exports__ = __vue_exports__.default
+}
+if (typeof __vue_options__ === "function") {
+  __vue_options__ = __vue_options__.options
+}
+
+__vue_options__.render = __vue_template__.render
+__vue_options__.staticRenderFns = __vue_template__.staticRenderFns
+
+module.exports = __vue_exports__
+
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __vue_exports__, __vue_options__
+var __vue_styles__ = {}
+
+/* script */
+__vue_exports__ = __webpack_require__(24)
+
+/* template */
+var __vue_template__ = __webpack_require__(67)
+__vue_options__ = __vue_exports__ = __vue_exports__ || {}
+if (
+  typeof __vue_exports__.default === "object" ||
+  typeof __vue_exports__.default === "function"
+) {
+__vue_options__ = __vue_exports__ = __vue_exports__.default
+}
+if (typeof __vue_options__ === "function") {
+  __vue_options__ = __vue_options__.options
+}
+
+__vue_options__.render = __vue_template__.render
+__vue_options__.staticRenderFns = __vue_template__.staticRenderFns
+
+module.exports = __vue_exports__
+
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __vue_exports__, __vue_options__
+var __vue_styles__ = {}
+
+/* script */
+__vue_exports__ = __webpack_require__(29)
+
+/* template */
+var __vue_template__ = __webpack_require__(76)
+__vue_options__ = __vue_exports__ = __vue_exports__ || {}
+if (
+  typeof __vue_exports__.default === "object" ||
+  typeof __vue_exports__.default === "function"
+) {
+__vue_options__ = __vue_exports__ = __vue_exports__.default
+}
+if (typeof __vue_options__ === "function") {
+  __vue_options__ = __vue_options__.options
+}
+
+__vue_options__.render = __vue_template__.render
+__vue_options__.staticRenderFns = __vue_template__.staticRenderFns
+
+module.exports = __vue_exports__
+
+
+/***/ }),
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(7);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__App_vue__ = __webpack_require__(22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__App_vue__ = __webpack_require__(43);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__App_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__App_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vuex_store__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__router__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_vuex_router_sync__ = __webpack_require__(51);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vuex_store__ = __webpack_require__(17);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__router__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_vuex_router_sync__ = __webpack_require__(87);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_vuex_router_sync___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4_vuex_router_sync__);
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return __WEBPACK_IMPORTED_MODULE_3__router__["a"]; });
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return __WEBPACK_IMPORTED_MODULE_2__vuex_store__["a"]; });
@@ -6372,51 +7337,107 @@ var app = new __WEBPACK_IMPORTED_MODULE_0_vue___default.a(_extends({
 
 
 /***/ }),
-/* 4 */
+/* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(__dirname) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(2);
+/* WEBPACK VAR INJECTION */(function(__dirname) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(7);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__components_LoginPage_vue__ = __webpack_require__(27);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__components_LoginPage_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__components_LoginPage_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__components_RegisterPage_vue__ = __webpack_require__(32);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__components_RegisterPage_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__components_RegisterPage_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__components_StyleGuide_vue__ = __webpack_require__(33);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__components_StyleGuide_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3__components_StyleGuide_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_vue_router__ = __webpack_require__(50);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_vue_router___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4_vue_router__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__components_pages_LoginPage_vue__ = __webpack_require__(53);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__components_pages_LoginPage_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__components_pages_LoginPage_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__components_pages_RegisterPage_vue__ = __webpack_require__(58);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__components_pages_RegisterPage_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__components_pages_RegisterPage_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__components_pages_HomePage_vue__ = __webpack_require__(52);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__components_pages_HomePage_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3__components_pages_HomePage_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__components_pages_NewPage_vue__ = __webpack_require__(56);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__components_pages_NewPage_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4__components_pages_NewPage_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__components_pages_NewItemPageStep1_vue__ = __webpack_require__(54);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__components_pages_NewItemPageStep1_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5__components_pages_NewItemPageStep1_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__components_pages_NewItemPageStep2_vue__ = __webpack_require__(55);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__components_pages_NewItemPageStep2_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_6__components_pages_NewItemPageStep2_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__components_pages_NewTemplatePage_vue__ = __webpack_require__(57);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__components_pages_NewTemplatePage_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_7__components_pages_NewTemplatePage_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__components_pages_StyleGuide_vue__ = __webpack_require__(59);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__components_pages_StyleGuide_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_8__components_pages_StyleGuide_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9_vue_router__ = __webpack_require__(86);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9_vue_router___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_9_vue_router__);
 
 
 
 
 
 
-__WEBPACK_IMPORTED_MODULE_0_vue___default.a.use(__WEBPACK_IMPORTED_MODULE_4_vue_router___default.a);
 
-var router = new __WEBPACK_IMPORTED_MODULE_4_vue_router___default.a({
+
+
+
+
+__WEBPACK_IMPORTED_MODULE_0_vue___default.a.use(__WEBPACK_IMPORTED_MODULE_9_vue_router___default.a);
+
+var router = new __WEBPACK_IMPORTED_MODULE_9_vue_router___default.a({
   mode: 'history',
   base: __dirname,
-  routes: [{ path: '/', component: __WEBPACK_IMPORTED_MODULE_1__components_LoginPage_vue___default.a }, { path: '/register', component: __WEBPACK_IMPORTED_MODULE_2__components_RegisterPage_vue___default.a }, { path: '/style-guide', component: __WEBPACK_IMPORTED_MODULE_3__components_StyleGuide_vue___default.a }]
+  routes: [{ path: '/app', component: __WEBPACK_IMPORTED_MODULE_1__components_pages_LoginPage_vue___default.a }, { path: '/app/register', component: __WEBPACK_IMPORTED_MODULE_2__components_pages_RegisterPage_vue___default.a }, { path: '/app/home', component: __WEBPACK_IMPORTED_MODULE_3__components_pages_HomePage_vue___default.a }, { path: '/app/new', component: __WEBPACK_IMPORTED_MODULE_4__components_pages_NewPage_vue___default.a }, { path: '/app/new-item', component: __WEBPACK_IMPORTED_MODULE_5__components_pages_NewItemPageStep1_vue___default.a }, { path: '/app/new-item-page-2', component: __WEBPACK_IMPORTED_MODULE_6__components_pages_NewItemPageStep2_vue___default.a }, { path: '/app/new-template', component: __WEBPACK_IMPORTED_MODULE_7__components_pages_NewTemplatePage_vue___default.a }, { path: '/app/style-guide', component: __WEBPACK_IMPORTED_MODULE_8__components_pages_StyleGuide_vue___default.a }]
 });
 
 /* harmony default export */ __webpack_exports__["a"] = router;
 /* WEBPACK VAR INJECTION */}.call(__webpack_exports__, "/"))
 
 /***/ }),
-/* 5 */
+/* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_axios__ = __webpack_require__(53);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_axios__ = __webpack_require__(88);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_axios___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_axios__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getTopics", function() { return getTopics; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getTemplates", function() { return getTemplates; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getTemplate", function() { return getTemplate; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "increment", function() { return increment; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "decrement", function() { return decrement; });
 
 
 __WEBPACK_IMPORTED_MODULE_0_axios___default.a.defaults.baseURL = 'http://jsonplaceholder.typicode.com/';
+
+/*
+ * Either wait for hoodie to load (if you're on the client),
+ * or call hoodie directly somehow (if you're on the server) (@TODO),
+ * then call the given function to process data.
+ */
+var runHoodieFn = function runHoodieFn(commit, state, fn) {
+  if (typeof window !== 'undefined') {
+    // @TODO understand why the hoodie constant is not available here server side
+    // @TODO remove, just understanding that hoodie needs time to initialize
+    if (typeof hoodie === 'undefined') {
+      console.log('hoodie is not defined yet');
+    }
+
+    var waitForHoodieToLoad = new Promise(function (resolve, reject) {
+      var intervalId = void 0;
+
+      console.log('waiting for hoodie to load');
+
+      intervalId = setInterval(function () {
+        if (typeof hoodie !== 'undefined') {
+          console.log('hoodie loaded!');
+
+          clearInterval(intervalId);
+          hoodie.ready.then(function () {
+            fn(resolve, reject);
+          });
+        } else {
+          console.log('hoodie not loaded');
+        }
+      }, 20);
+    });
+
+    return waitForHoodieToLoad;
+  } else {
+    // @TODO: just return an empty object until we have something to show for this
+    return {};
+  }
+};
 
 var getTopics = function getTopics(_ref) {
   var commit = _ref.commit,
@@ -6431,41 +7452,197 @@ var getTopics = function getTopics(_ref) {
   });
 };
 
-var increment = function increment(_ref2) {
-  var commit = _ref2.commit;
+var getTemplates = function getTemplates(_ref2) {
+  var commit = _ref2.commit,
+      state = _ref2.state;
+
+  var findAllTemplates = function findAllTemplates(resolve, reject) {
+    // look through the DB for all the templates
+    hoodie.store.findAll().then(function (docs) {
+      return docs.filter(function (doc) {
+        return doc.templateName;
+      }); // filter out docs that have no templateName field
+    }).then(function (templateDocs) {
+      console.log('done loading templates');
+      console.log(templateDocs);
+      // update the store with the list of available templates
+      commit('TEMPLATE_LIST', templateDocs);
+      resolve(templateDocs);
+    }).catch(function (error) {
+      console.log(error);
+      reject(error);
+    });
+  };
+
+  return runHoodieFn(commit, state, findAllTemplates);
+};
+
+var getTemplate = function getTemplate(_ref3) {
+  var commit = _ref3.commit,
+      state = _ref3.state,
+      templateId = _ref3.templateId;
+
+  var findTemplate = function findTemplate(resolve, reject) {
+    console.log('Template ID: ' + templateId);
+    // look through the DB for all the templates
+    hoodie.store.find(templateId).then(function (templateDoc) {
+      console.log('done loading template');
+      // update the store with the list of available templates
+      commit('ACTIVE_TEMPLATE', templateDoc);
+      resolve(templateDoc);
+    }).catch(function (error) {
+      console.log(error);
+      reject(error);
+    });
+  };
+
+  return runHoodieFn(commit, state, findTemplate);
+};
+
+var increment = function increment(_ref4) {
+  var commit = _ref4.commit;
   return commit('INCREMENT');
 };
-var decrement = function decrement(_ref3) {
-  var commit = _ref3.commit;
+var decrement = function decrement(_ref5) {
+  var commit = _ref5.commit;
   return commit('DECREMENT');
 };
 
 /***/ }),
-/* 6 */
+/* 14 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getTopics", function() { return getTopics; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getCount", function() { return getCount; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getTemplates", function() { return getTemplates; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getActiveTemplate", function() { return getActiveTemplate; });
 var getTopics = function getTopics(state) {
   return state.topics;
 };
 var getCount = function getCount(state) {
   return state.count;
 };
+var getTemplates = function getTemplates(state) {
+  return state.templates;
+};
+var getActiveTemplate = function getActiveTemplate(state) {
+  return state.activeTemplate;
+};
 
 /***/ }),
-/* 7 */
+/* 15 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(2);
+var fieldListModule = {
+  // namespace this module so that it doesn't collide with other store behavior
+  namespaced: true, // -> getters['fields/*']
+  // default values
+  // fields are represented as an array of empty objects since the data gets managed in the
+  // form store, but we need to keep track of an ordered list of objects we can remove in the future
+  state: { fields: [{}] },
+  getters: {
+    getFields: function getFields(state) {
+      return state.fields;
+    }
+  },
+  // directly update the store
+  mutations: {
+    // add field to list
+    ADD_FIELD: function ADD_FIELD(state) {
+      state.fields.push({});
+    },
+    // remove field from list
+    REMOVE_FIELD: function REMOVE_FIELD(state, fieldIndex) {
+      if (typeof fieldIndex !== 'undefined') {
+        console.log('Removing index ' + fieldIndex);
+        console.log(state.fields);
+        state.fields = state.fields.splice(fieldIndex, 1);
+        console.log(state.fields);
+      } else {
+        throw new Error('fieldIndex undefined in fields/removeField');
+      }
+    }
+  },
+  // update the store event handler
+  actions: {
+    addField: function addField(_ref, field) {
+      var commit = _ref.commit;
+      commit('ADD_FIELD', field);
+    },
+    updateField: function updateField(_ref2, field) {
+      var commit = _ref2.commit;
+      commit('UPDATE_FIELD', field);
+    },
+    removeField: function removeField(_ref3) {
+      var commit = _ref3.commit;
+      commit('REMOVE_FIELD');
+    }
+  }
+};
+
+/* harmony default export */ __webpack_exports__["a"] = fieldListModule;
+
+/***/ }),
+/* 16 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+var formModule = {
+  // namespace this module so that it doesn't collide with other store behavior
+  namespaced: true, // -> getters['form/*']
+  // default values
+  state: { fields: {} },
+  // directly update the store
+  mutations: {
+    // add/update form field to current form
+    UPDATE_FIELD: function UPDATE_FIELD(state, field) {
+      state.fields[field.name] = field.value;
+    },
+    REMOVE_FIELD: function REMOVE_FIELD(state, field) {
+      delete state.fields[field.name];
+    },
+    // reset all form state
+    RESET_FORM: function RESET_FORM(state) {
+      state.fields = {};
+    }
+  },
+  // update the store event handler
+  actions: {
+    updateField: function updateField(_ref, field) {
+      var commit = _ref.commit;
+      commit('UPDATE_FIELD', field);
+    },
+    removeField: function removeField(_ref2, field) {
+      var commit = _ref2.commit;
+      commit('REMOVE_FIELD', field);
+    },
+    resetForm: function resetForm(_ref3) {
+      var commit = _ref3.commit;
+      commit('RESET_FORM');
+    }
+  }
+};
+
+/* harmony default export */ __webpack_exports__["a"] = formModule;
+
+/***/ }),
+/* 17 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(7);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vuex__ = __webpack_require__(52);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vuex__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vuex___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_vuex__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__actions__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__getters__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__actions__ = __webpack_require__(13);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__getters__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__modules_form__ = __webpack_require__(16);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__modules_fields__ = __webpack_require__(15);
+
+
 
 
 
@@ -6475,6 +7652,7 @@ __WEBPACK_IMPORTED_MODULE_0_vue___default.a.use(__WEBPACK_IMPORTED_MODULE_1_vuex
 
 var defaultState = {
   topics: [],
+  templates: [],
   count: 0
 };
 
@@ -6486,6 +7664,14 @@ var state = inBrowser && window.__INITIAL_STATE__ || defaultState;
 var mutations = {
   TOPICS_LIST: function TOPICS_LIST(state, topics) {
     state.topics = topics;
+  },
+
+  TEMPLATE_LIST: function TEMPLATE_LIST(state, templates) {
+    state.templates = templates;
+  },
+
+  ACTIVE_TEMPLATE: function ACTIVE_TEMPLATE(state, template) {
+    state.activeTemplate = template;
   },
 
   INCREMENT: function INCREMENT(state) {
@@ -6501,11 +7687,42 @@ var mutations = {
   state: state,
   actions: __WEBPACK_IMPORTED_MODULE_2__actions__,
   mutations: mutations,
-  getters: __WEBPACK_IMPORTED_MODULE_3__getters__
+  getters: __WEBPACK_IMPORTED_MODULE_3__getters__,
+  modules: {
+    form: __WEBPACK_IMPORTED_MODULE_4__modules_form__["a" /* default */],
+    fields: __WEBPACK_IMPORTED_MODULE_5__modules_fields__["a" /* default */]
+  }
 });
 
 /***/ }),
-/* 8 */
+/* 18 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vuex__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vuex___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_vuex__);
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = {
+  // define the html tag that will be used to invoke this component (<primary-button text="exampleText"></primary-button>)
+  name: 'add-item-button',
+  methods: _extends({}, __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_vuex__["mapActions"])({
+    addField: 'fields/addField'
+  }))
+};
+
+/***/ }),
+/* 19 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -6520,18 +7737,91 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+
+/* harmony default export */ __webpack_exports__["default"] = {
+  name: 'app-footer'
+};
+
+/***/ }),
+/* 20 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+//
+//
+//
 //
 //
 //
 
 /* harmony default export */ __webpack_exports__["default"] = {
-  name: 'checkbox-field',
-  // define the props that can be passed in, to differentiate local variables versus arguments I guess
-  props: ['id', 'label', 'type', 'placeholder', 'value']
+  name: 'app-header'
 };
 
 /***/ }),
-/* 9 */
+/* 21 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vuex__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vuex___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_vuex__);
+var _this = this;
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = {
+  name: 'checkbox-field',
+  methods: {
+    update: function update(e) {
+      // tell action in form vuex module to update its form field with the following key/value pair
+      this.$store.dispatch('form/updateField', {
+        name: this.id,
+        value: e.target.value
+      });
+    }
+  },
+  computed: _extends({}, __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_vuex__["mapState"])({
+    value: function value(state) {
+      return state.form.fields[_this.id];
+    }
+  })),
+  props: {
+    id: {
+      type: String,
+      required: true
+    },
+    label: {
+      type: String,
+      required: true
+    },
+    placeholder: {
+      type: String,
+      required: false
+    }
+  }
+};
+
+/***/ }),
+/* 22 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -6548,19 +7838,32 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 
 /*
+ * A choice list is one that lists a list of options to choose from.
+ * Used as an alternative for a drop down.
  * choices {ARRAY} - [{ link: 'string', label: 'string' }, ...]
  */
 /* harmony default export */ __webpack_exports__["default"] = {
   name: 'choice-list',
-  props: ['choices']
+  props: {
+    choices: {
+      type: Array,
+      required: true
+    }
+  }
 };
 
 /***/ }),
-/* 10 */
+/* 23 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vuex__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vuex___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_vuex__);
+var _this = this;
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 //
 //
 //
@@ -6572,23 +7875,214 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 
+
+
 /*
- * options {ARRAY} - [{ label: 'string', value: 'string' }, ...]
+ * This is a text field. It can be of type text, email, password, etc.
+ *
+ * @param {STRING} {REQUIRED} id       The id and name of this text field.
+ * @param {STRING} {REQUIRED} label    The label for this text field.
+ * @param {ARRAY}  {REQUIRED} options  An array containing the list of options, given in the format [{ label: 'string', value: 'string' }, ...]
  */
 /* harmony default export */ __webpack_exports__["default"] = {
   name: 'dropdown-field',
-  props: ['id', 'label', 'options']
+  methods: {
+    update: function update(e) {
+      // tell action in form vuex module to update its form field with the following key/value pair
+      this.$store.dispatch('form/updateField', {
+        name: this.id,
+        value: e.target.value
+      });
+    },
+    isSelected: function isSelected(value) {
+      return this.value === value;
+    }
+  },
+  computed: _extends({}, __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_vuex__["mapState"])({
+    value: function value(state) {
+      return state.form.fields[_this.id];
+    }
+  })),
+  props: {
+    id: {
+      type: String,
+      required: true
+    },
+    label: {
+      type: String,
+      required: true
+    },
+    options: {
+      type: Array,
+      required: true
+    }
+  }
 };
 
 /***/ }),
-/* 11 */
+/* 24 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__TextField_vue__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__RemoveButton_vue__ = __webpack_require__(50);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__RemoveButton_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__RemoveButton_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__TextField_vue__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__TextField_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__TextField_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__DropdownField_vue__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__DropdownField_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__DropdownField_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__RadioButtonField_vue__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__RadioButtonField_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3__RadioButtonField_vue__);
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = {
+  name: 'field-card',
+  data: function data() {
+    return {
+      fieldLabel: 'field_label_' + this.fieldIndex,
+      fieldType: 'field_type_' + this.fieldIndex,
+      showInPreview: 'show_in_preview_' + this.fieldIndex,
+      radioButtonOptions: [{
+        label: 'No',
+        value: 'no'
+      }, {
+        label: 'Yes',
+        value: 'yes'
+      }],
+      fieldTypes: [{
+        label: '-- Select One --',
+        value: ''
+      }, {
+        label: 'Text Field',
+        value: 'text-field'
+      }, {
+        label: 'Large Text Field',
+        value: 'text-area-field'
+      }, {
+        label: 'Completable',
+        value: 'checkbox-field'
+      }]
+    };
+  },
+  methods: {
+    remove: function remove() {
+      // clean up the fields we're about to remove from the form
+      this.$store.dispatch('form/removeField', {
+        name: this.fieldLabel
+      });
+      this.$store.dispatch('form/removeField', {
+        name: this.fieldType
+      });
+      this.$store.dispatch('form/removeField', {
+        name: this.showInPreview
+      });
+      // tells the parent component that we've done the clean up necessary
+      // to now remove this card
+      console.log('Calling removeField in FieldCard on index ' + this.fieldIndex);
+      this.removeField(this.fieldIndex);
+    }
+  },
+  props: {
+    fieldIndex: {
+      type: Number,
+      required: true
+    },
+    removeField: {
+      type: Function,
+      required: true
+    }
+  },
+  components: {
+    RemoveButton: __WEBPACK_IMPORTED_MODULE_0__RemoveButton_vue___default.a,
+    TextField: __WEBPACK_IMPORTED_MODULE_1__TextField_vue___default.a,
+    DropdownField: __WEBPACK_IMPORTED_MODULE_2__DropdownField_vue___default.a,
+    RadioButtonField: __WEBPACK_IMPORTED_MODULE_3__RadioButtonField_vue___default.a
+  }
+};
+
+/***/ }),
+/* 25 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__ObjectList_vue__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__ObjectList_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__ObjectList_vue__);
+//
+//
+//
+//
+
+
+
+/**
+ * Shows a list of items and bundles for the current bundle directory.
+ *
+ * @TODO: Replace items with data pulled from DB.
+ *
+ * @param {STRING} {REQUIRED} path The bundle path to display.
+ */
+
+/* harmony default export */ __webpack_exports__["default"] = {
+  name: 'item-directory',
+  data: function data() {
+    return {
+      items: []
+    };
+  },
+  created: function created() {
+    /*
+    let self = this;
+     hoodie.ready.then(function () {
+      // look through the DB for all the items for the given bundle path
+      hoodie.store.findAll()
+        .then((docs) => {
+          return docs.filter(function (doc) {
+            // check if the doc is an item, and if the doc is a part of a bundle,
+            // only include items that are part of the specified bundle path
+            return doc.itemName && (!doc.bundle || doc.bundles && doc.bundles.indexOf(self.path) !== -1)
+          })
+        })
+        .then(function (itemDocs) {
+          // do your thing
+          self.items = itemDocs;
+        })
+    })
+    */
+  },
+  components: {
+    ObjectList: __WEBPACK_IMPORTED_MODULE_0__ObjectList_vue___default.a
+  },
+  props: {
+    path: {
+      type: String,
+      required: true
+    }
+  }
+};
+
+/***/ }),
+/* 26 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__TextField_vue__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__TextField_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__TextField_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__SubmitButton_vue__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__SubmitButton_vue__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__SubmitButton_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__SubmitButton_vue__);
 //
 //
@@ -6614,13 +8108,431 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 };
 
 /***/ }),
-/* 12 */
+/* 27 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__LoginForm_vue__ = __webpack_require__(26);
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+/*
+ * An object list is one that lists items.
+ *
+ * choices {ARRAY} - [{ link: 'string', label: 'string' }, ...]
+ */
+/* harmony default export */ __webpack_exports__["default"] = {
+  name: 'object-list',
+  props: {
+    objects: {
+      type: Array,
+      required: true
+    },
+    isIndented: {
+      type: Boolean,
+      required: false
+    }
+  }
+};
+
+/***/ }),
+/* 28 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+//
+//
+//
+//
+
+// @TODO: Update Vue.js documentation to make it clearer what the minimum requirements are for a single file component
+/* harmony default export */ __webpack_exports__["default"] = {
+  // define the html tag that will be used to invoke this component (<primary-button text="exampleText"></primary-button>)
+  name: 'primary-button',
+  props: {
+    text: {
+      type: String,
+      required: true
+    }
+  }
+};
+
+/***/ }),
+/* 29 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vuex__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vuex___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_vuex__);
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+
+/*
+ * options {ARRAY} - [{ label: 'string', value: 'string' }, ...]
+ */
+/* harmony default export */ __webpack_exports__["default"] = {
+  name: 'radio-button-field',
+  methods: {
+    update: function update(e) {
+      // tell action in form vuex module to update its form field with the following key/value pair
+      this.$store.dispatch('form/updateField', {
+        name: this.id,
+        value: e.target.value
+      });
+    },
+    isChecked: function isChecked(value) {
+      return this.value === value ? 'checked' : '';
+    }
+  },
+  computed: _extends({}, __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_vuex__["mapState"])({
+    value: function value(state) {
+      return state.form.fields[this.id];
+    }
+  })),
+  props: {
+    id: {
+      type: String,
+      required: true
+    },
+    label: {
+      type: String,
+      required: true
+    },
+    options: {
+      type: Array,
+      required: true
+    }
+  }
+};
+
+/***/ }),
+/* 30 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__TextField_vue__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__TextField_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__TextField_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__SubmitButton_vue__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__SubmitButton_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__SubmitButton_vue__);
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = {
+  name: 'register-form',
+  methods: {
+    register: function register(e) {
+      var self = this;
+      e.preventDefault();
+
+      // hoodie.account is not available until hoodie.ready (a promise) is resolved.
+      hoodie.ready.then(function () {
+        hoodie.account.ready.then(function () {
+          // @TODO: Check if signing out is necessary before signing in
+          hoodie.account.signUp({
+            username: self.$store.state.form.fields.username,
+            password: self.$store.state.form.fields.password
+          }).then(function (accountProperties) {
+            // returns id, username, createdAt, updatedAt
+            console.log(accountProperties);
+            // account created! you aren't signed in yet, though
+            hoodie.account.signIn({
+              username: self.$store.state.form.fields.username,
+              password: self.$store.state.form.fields.password
+            }).then(function (sessionProperties) {
+              // returns id, username, createdAt, updatedAt,
+              // and profile properties (i.e. fullname)
+              console.log(sessionProperties);
+              // redirect to the home page when finished
+              self.$router.push('/app/home');
+            });
+          }).catch(function (err) {
+            console.log(err);
+          });
+        });
+      });
+    }
+  },
+  components: {
+    TextField: __WEBPACK_IMPORTED_MODULE_0__TextField_vue___default.a,
+    SubmitButton: __WEBPACK_IMPORTED_MODULE_1__SubmitButton_vue___default.a
+  }
+};
+
+/***/ }),
+/* 31 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+//
+//
+//
+//
+
+/* harmony default export */ __webpack_exports__["default"] = {
+  name: 'remove-button',
+  props: {
+    remove: {
+      type: Function,
+      required: true
+    }
+  }
+};
+
+/***/ }),
+/* 32 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+//
+//
+//
+//
+
+/* harmony default export */ __webpack_exports__["default"] = {
+  name: 'submit-button',
+  props: {
+    text: {
+      type: String,
+      required: true
+    }
+  }
+};
+
+/***/ }),
+/* 33 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vuex__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vuex___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_vuex__);
+var _this = this;
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = {
+  name: 'textarea-field',
+  methods: {
+    update: function update(e) {
+      // tell action in form vuex module to update its form field with the following key/value pair
+      this.$store.dispatch('form/updateField', {
+        name: this.id,
+        value: e.target.value
+      });
+    }
+  },
+  computed: _extends({}, __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_vuex__["mapState"])({
+    value: function value(state) {
+      return state.form.fields[_this.id];
+    }
+  })),
+  props: {
+    id: {
+      type: String,
+      required: true
+    },
+    label: {
+      type: String,
+      required: true
+    },
+    placeholder: {
+      type: String,
+      required: false
+    }
+  }
+};
+
+/***/ }),
+/* 34 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vuex__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vuex___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_vuex__);
+var _this = this;
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+
+/*
+ * This is a text field. It can be of type text, email, password, etc.
+ *
+ * @param {STRING} {REQUIRED} id          The id and name of this text field.
+ * @param {STRING} {REQUIRED} label       The label for this text field.
+ * @param {STRING} {OPTIONAL} type        The type of input field this will be. (text, password, email, etc.)
+ * @param {STRING} {OPTIONAL} placeholder The placeholder attribute for this text field.
+ */
+
+/* harmony default export */ __webpack_exports__["default"] = {
+  name: 'text-field',
+  methods: {
+    update: function update(e) {
+      // tell action in form vuex module to update its form field with the following key/value pair
+      this.$store.dispatch('form/updateField', {
+        name: this.id,
+        value: e.target.value
+      });
+    }
+  },
+  computed: _extends({}, __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_vuex__["mapState"])({
+    value: function value(state) {
+      return state.form.fields[_this.id];
+    }
+  })),
+  // define the props that can be passed in, to differentiate local variables versus arguments I guess
+  props: {
+    id: {
+      type: String,
+      required: true
+    },
+    label: {
+      type: String,
+      required: true
+    },
+    type: {
+      type: String,
+      default: 'text',
+      required: false
+    },
+    placeholder: {
+      type: String,
+      required: false
+    }
+  }
+};
+
+/***/ }),
+/* 35 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__AppFooter_vue__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__AppFooter_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__AppFooter_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__AppHeader_vue__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__AppHeader_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__AppHeader_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__ItemDirectory_vue__ = __webpack_require__(46);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__ItemDirectory_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__ItemDirectory_vue__);
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = {
+  name: 'home-page',
+  // List the components used on this page. This is using ES2015 syntax,
+  // where PrimaryButton is the same as 'PrimaryButton': PrimaryButton
+  components: {
+    AppFooter: __WEBPACK_IMPORTED_MODULE_0__AppFooter_vue___default.a,
+    AppHeader: __WEBPACK_IMPORTED_MODULE_1__AppHeader_vue___default.a,
+    ItemDirectory: __WEBPACK_IMPORTED_MODULE_2__ItemDirectory_vue___default.a
+  }
+};
+
+/***/ }),
+/* 36 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__LoginForm_vue__ = __webpack_require__(47);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__LoginForm_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__LoginForm_vue__);
+//
+//
 //
 //
 //
@@ -6641,11 +8553,28 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 };
 
 /***/ }),
-/* 13 */
+/* 37 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vuex__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vuex___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_vuex__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__AppFooter_vue__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__AppFooter_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__AppFooter_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__AppHeader_vue__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__AppHeader_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__AppHeader_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__DropdownField_vue__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__DropdownField_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3__DropdownField_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__SubmitButton_vue__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__SubmitButton_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4__SubmitButton_vue__);
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
 //
 //
 //
@@ -6658,105 +8587,299 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 
-/*
- * choices {ARRAY} - [{ link: 'string', label: 'string' }, ...]
- */
-/* harmony default export */ __webpack_exports__["default"] = {
-  name: 'object-list',
-  props: ['objects']
+
+
+
+
+
+
+var fetchInitialData = function fetchInitialData(store) {
+  return store.dispatch('getTemplates');
 };
 
-/***/ }),
-/* 14 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-//
-//
-//
-//
-
-// @TODO: Update Vue.js documentation to make it clearer what the minimum requirements are for a single file component
 /* harmony default export */ __webpack_exports__["default"] = {
-  // define the html tag that will be used to invoke this component (<primary-button text="exampleText"></primary-button>)
-  name: 'primary-button',
-  // define the props that can be passed in, to differentiate local variables versus arguments I guess
-  props: ['text']
-};
+  name: 'new-item-page-1',
+  prefetch: fetchInitialData,
+  computed: _extends({}, __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_vuex__["mapGetters"])({
+    templates: 'getTemplates'
+  })),
+  mounted: function mounted() {
+    fetchInitialData(this.$store);
+  },
 
-/***/ }),
-/* 15 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-/*
- * options {ARRAY} - [{ label: 'string', value: 'string' }, ...]
- */
-/* harmony default export */ __webpack_exports__["default"] = {
-  name: 'dropdown-field',
-  props: ['id', 'label', 'options']
-};
-
-/***/ }),
-/* 16 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__TextField_vue__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__TextField_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__TextField_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__SubmitButton_vue__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__SubmitButton_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__SubmitButton_vue__);
-//
-//
-//
-//
-//
-//
-//
-//
-
-
-
-
-/* harmony default export */ __webpack_exports__["default"] = {
-  name: 'register-form',
-  // List the components used on this page. This is using ES2015 syntax,
-  // where PrimaryButton is the same as 'PrimaryButton': PrimaryButton
+  methods: {
+    areTemplatesLoaded: function areTemplatesLoaded() {
+      return Array.isArray(this.templates);
+    }
+  },
   components: {
-    TextField: __WEBPACK_IMPORTED_MODULE_0__TextField_vue___default.a,
-    SubmitButton: __WEBPACK_IMPORTED_MODULE_1__SubmitButton_vue___default.a
+    AppHeader: __WEBPACK_IMPORTED_MODULE_2__AppHeader_vue___default.a,
+    AppFooter: __WEBPACK_IMPORTED_MODULE_1__AppFooter_vue___default.a,
+    DropdownField: __WEBPACK_IMPORTED_MODULE_3__DropdownField_vue___default.a,
+    SubmitButton: __WEBPACK_IMPORTED_MODULE_4__SubmitButton_vue___default.a
   }
 };
 
 /***/ }),
-/* 17 */
+/* 38 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__RegisterForm_vue__ = __webpack_require__(31);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vuex__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vuex___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_vuex__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__AppFooter_vue__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__AppFooter_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__AppFooter_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__AppHeader_vue__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__AppHeader_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__AppHeader_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__SubmitButton_vue__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__SubmitButton_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3__SubmitButton_vue__);
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+
+
+
+
+var fetchInitialData = function fetchInitialData(store) {
+  var templateId = void 0;
+  var searchStr = void 0;
+
+  if (typeof window !== 'undefined') {
+    searchStr = window.location.search;
+
+    if (searchStr) {
+      templateId = searchStr.substr(searchStr.lastIndexOf('=' + 1));
+    }
+  }
+
+  if (templateId) {
+    return store.dispatch('getActiveTemplate', templateId);
+  } else {
+    // @TODO: Show user facing error and redirect them to the home page
+    throw Error('No active template found.');
+  }
+};
+
+/* harmony default export */ __webpack_exports__["default"] = {
+  name: 'new-item-page-2',
+  prefetch: fetchInitialData,
+  computed: _extends({}, __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_vuex__["mapGetters"])({
+    template: 'getActiveTemplate'
+  })),
+  mounted: function mounted() {
+    fetchInitialData(this.$store);
+  },
+
+  methods: {
+    addItem: function addItem(e) {
+      /*
+      hoodie.ready.then(function () {
+        if (hoodie.account.isSignedIn()) {
+          hoodie.store.add({})
+        } else {
+          throw new Error('User is not currently signed in.');
+        }
+      });
+      */
+    }
+  },
+  components: {
+    AppHeader: __WEBPACK_IMPORTED_MODULE_2__AppHeader_vue___default.a,
+    AppFooter: __WEBPACK_IMPORTED_MODULE_1__AppFooter_vue___default.a,
+    SubmitButton: __WEBPACK_IMPORTED_MODULE_3__SubmitButton_vue___default.a
+  }
+};
+
+/***/ }),
+/* 39 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__AppHeader_vue__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__AppHeader_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__AppHeader_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__AppFooter_vue__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__AppFooter_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__AppFooter_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__ObjectList_vue__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__ObjectList_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__ObjectList_vue__);
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = {
+  name: 'new-page',
+  data: function data() {
+    return {
+      objects: [{
+        label: 'Item',
+        link: '/new-item'
+      }, {
+        label: 'Template',
+        link: '/new-template'
+      }, {
+        label: 'Bundle',
+        link: '/new-bundle'
+      }],
+      isIndented: true
+    };
+  },
+  components: {
+    AppHeader: __WEBPACK_IMPORTED_MODULE_0__AppHeader_vue___default.a,
+    AppFooter: __WEBPACK_IMPORTED_MODULE_1__AppFooter_vue___default.a,
+    ObjectList: __WEBPACK_IMPORTED_MODULE_2__ObjectList_vue___default.a
+  }
+};
+
+/***/ }),
+/* 40 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vuex__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vuex___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_vuex__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__AppFooter_vue__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__AppFooter_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__AppFooter_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__AppHeader_vue__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__AppHeader_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__AppHeader_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__FieldCard_vue__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__FieldCard_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3__FieldCard_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__AddItemButton_vue__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__AddItemButton_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4__AddItemButton_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__TextField_vue__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__TextField_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5__TextField_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__SubmitButton_vue__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__SubmitButton_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_6__SubmitButton_vue__);
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+
+
+
+
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = {
+  name: 'new-template-page',
+  computed: _extends({}, __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_vuex__["mapGetters"])({
+    fields: 'fields/getFields'
+  })),
+  methods: {
+    addTemplate: function addTemplate(e) {
+      var name = void 0,
+          field = void 0,
+          idx = void 0;
+      var fields = [];
+      var form = this.$store.state.form.fields;
+
+      e.preventDefault();
+      // iterate through fields
+      for (field in form) {
+        console.log(field);
+        // let's make sure we only check the properties of the current object
+        if (form.hasOwnProperty(field)) {
+          // most fields end in _n, so get the index
+          idx = Number(field.charAt(field.length - 1));
+
+          // check for NaN
+          if (idx === idx) {
+            if (!fields[idx]) {
+              fields[idx] = {};
+            }
+            // if idx is a number, extract _n to get the field name and add it to
+            // the fields array
+            fields[idx][field.substr(0, field.length - 2)] = form[field];
+          } else {
+            name = form[field];
+          }
+        }
+      }
+
+      hoodie.ready.then(function () {
+        if (hoodie.account.isSignedIn()) {
+          hoodie.store.add({
+            templateName: name,
+            fields: fields
+          });
+        } else {
+          throw new Error('User is not currently signed in.');
+        }
+      });
+    },
+    removeField: function removeField(fieldIndex) {
+      console.log('Calling removeField in NewItemPage on index ' + fieldIndex);
+      this.$store.dispatch('fields/removeField', fieldIndex);
+    }
+  },
+  components: {
+    AppHeader: __WEBPACK_IMPORTED_MODULE_2__AppHeader_vue___default.a,
+    AppFooter: __WEBPACK_IMPORTED_MODULE_1__AppFooter_vue___default.a,
+    FieldCard: __WEBPACK_IMPORTED_MODULE_3__FieldCard_vue___default.a,
+    AddItemButton: __WEBPACK_IMPORTED_MODULE_4__AddItemButton_vue___default.a,
+    TextField: __WEBPACK_IMPORTED_MODULE_5__TextField_vue___default.a,
+    SubmitButton: __WEBPACK_IMPORTED_MODULE_6__SubmitButton_vue___default.a
+  }
+};
+
+/***/ }),
+/* 41 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__RegisterForm_vue__ = __webpack_require__(49);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__RegisterForm_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__RegisterForm_vue__);
+//
+//
 //
 //
 //
@@ -6777,29 +8900,33 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 };
 
 /***/ }),
-/* 18 */
+/* 42 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__CheckboxField_vue__ = __webpack_require__(23);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__CheckboxField_vue__ = __webpack_require__(44);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__CheckboxField_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__CheckboxField_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ChoiceList_vue__ = __webpack_require__(24);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ChoiceList_vue__ = __webpack_require__(45);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ChoiceList_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__ChoiceList_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__DropdownField_vue__ = __webpack_require__(25);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__DropdownField_vue__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__DropdownField_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__DropdownField_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ObjectList_vue__ = __webpack_require__(28);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ObjectList_vue__ = __webpack_require__(6);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ObjectList_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3__ObjectList_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__PrimaryButton_vue__ = __webpack_require__(29);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__PrimaryButton_vue__ = __webpack_require__(48);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__PrimaryButton_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4__PrimaryButton_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__RadioButtonField_vue__ = __webpack_require__(30);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__RadioButtonField_vue__ = __webpack_require__(10);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__RadioButtonField_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5__RadioButtonField_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__SubmitButton_vue__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__SubmitButton_vue__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__SubmitButton_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_6__SubmitButton_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__TextAreaField_vue__ = __webpack_require__(34);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__TextAreaField_vue__ = __webpack_require__(51);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__TextAreaField_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_7__TextAreaField_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__TextField_vue__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__TextField_vue__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__TextField_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_8__TextField_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__FieldCard_vue__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__FieldCard_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_9__FieldCard_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__AddItemButton_vue__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__AddItemButton_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_10__AddItemButton_vue__);
 //
 //
 //
@@ -6984,6 +9111,25 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
 
 
 
@@ -7008,7 +9154,9 @@ if (typeof document !== 'undefined') {
       radio_button_field: '<radio-button-field id="example_radio_button" label="Radio Buttons" options="radioButtonOptions"></radio-button-field>',
       dropdown_field: '<dropdown-field id="example_dropdown" label="Dropdown" options="dropdownOptions"></dropdown-field>',
       object_list: '<object-list objects="objectListObjects"></object-list>',
-      choice_list: '<choice-list objects="choiceListObjects"></choice-list>'
+      choice_list: '<choice-list choices="choiceListObjects"></choice-list>',
+      field_card: '<field-card :fieldIndex="index" :removeField="removeField"></field-card>',
+      add_item_button: '<add-item-button></add-item-button>'
     };
     for (i = 0; i < componentSource.length; i++) {
       componentSource[i].innerText = components[componentSource[i].getAttribute('id')];
@@ -7027,6 +9175,8 @@ if (typeof document !== 'undefined') {
     opt2.value = 'option_2';
 
     return {
+      index: 0,
+      removeField: function removeField() {},
       radioButtonOptions: [opt1, opt2],
       dropdownOptions: [{ value: '', label: 'Select a value' }, { value: 'one', label: 'A value' }, { value: 'two', label: 'Another value' }],
       objectListObjects: [{ link: '#', label: 'One thing' }, { link: '#', label: 'Another thing' }, { link: '#', label: 'The best thing' }]
@@ -7041,86 +9191,21 @@ if (typeof document !== 'undefined') {
     RadioButtonField: __WEBPACK_IMPORTED_MODULE_5__RadioButtonField_vue___default.a,
     SubmitButton: __WEBPACK_IMPORTED_MODULE_6__SubmitButton_vue___default.a,
     TextAreaField: __WEBPACK_IMPORTED_MODULE_7__TextAreaField_vue___default.a,
-    TextField: __WEBPACK_IMPORTED_MODULE_8__TextField_vue___default.a
+    TextField: __WEBPACK_IMPORTED_MODULE_8__TextField_vue___default.a,
+    FieldCard: __WEBPACK_IMPORTED_MODULE_9__FieldCard_vue___default.a,
+    AddItemButton: __WEBPACK_IMPORTED_MODULE_10__AddItemButton_vue___default.a
   }
 };
 
 /***/ }),
-/* 19 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-//
-//
-//
-//
-
-/* harmony default export */ __webpack_exports__["default"] = {
-  name: 'submit-button',
-  props: ['text']
-};
-
-/***/ }),
-/* 20 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-/* harmony default export */ __webpack_exports__["default"] = {
-  name: 'textarea-field',
-  props: ['id', 'label', 'type', 'placeholder', 'value']
-};
-
-/***/ }),
-/* 21 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-/* harmony default export */ __webpack_exports__["default"] = {
-  name: 'text-field',
-  // define the props that can be passed in, to differentiate local variables versus arguments I guess
-  props: ['id', 'label', 'type', 'placeholder', 'value']
-};
-
-/***/ }),
-/* 22 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __vue_exports__, __vue_options__
 var __vue_styles__ = {}
 
 /* template */
-var __vue_template__ = __webpack_require__(47)
+var __vue_template__ = __webpack_require__(71)
 __vue_options__ = __vue_exports__ = __vue_exports__ || {}
 if (
   typeof __vue_exports__.default === "object" ||
@@ -7132,26 +9217,24 @@ if (typeof __vue_options__ === "function") {
   __vue_options__ = __vue_options__.options
 }
 
-if(typeof __vue_options__.name === "undefined") {
-  __vue_options__.name = "App"
-}__vue_options__.render = __vue_template__.render
+__vue_options__.render = __vue_template__.render
 __vue_options__.staticRenderFns = __vue_template__.staticRenderFns
 
 module.exports = __vue_exports__
 
 
 /***/ }),
-/* 23 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __vue_exports__, __vue_options__
 var __vue_styles__ = {}
 
 /* script */
-__vue_exports__ = __webpack_require__(8)
+__vue_exports__ = __webpack_require__(21)
 
 /* template */
-var __vue_template__ = __webpack_require__(40)
+var __vue_template__ = __webpack_require__(85)
 __vue_options__ = __vue_exports__ = __vue_exports__ || {}
 if (
   typeof __vue_exports__.default === "object" ||
@@ -7163,26 +9246,24 @@ if (typeof __vue_options__ === "function") {
   __vue_options__ = __vue_options__.options
 }
 
-if(typeof __vue_options__.name === "undefined") {
-  __vue_options__.name = "CheckboxField"
-}__vue_options__.render = __vue_template__.render
+__vue_options__.render = __vue_template__.render
 __vue_options__.staticRenderFns = __vue_template__.staticRenderFns
 
 module.exports = __vue_exports__
 
 
 /***/ }),
-/* 24 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __vue_exports__, __vue_options__
 var __vue_styles__ = {}
 
 /* script */
-__vue_exports__ = __webpack_require__(9)
+__vue_exports__ = __webpack_require__(22)
 
 /* template */
-var __vue_template__ = __webpack_require__(38)
+var __vue_template__ = __webpack_require__(74)
 __vue_options__ = __vue_exports__ = __vue_exports__ || {}
 if (
   typeof __vue_exports__.default === "object" ||
@@ -7194,26 +9275,24 @@ if (typeof __vue_options__ === "function") {
   __vue_options__ = __vue_options__.options
 }
 
-if(typeof __vue_options__.name === "undefined") {
-  __vue_options__.name = "ChoiceList"
-}__vue_options__.render = __vue_template__.render
+__vue_options__.render = __vue_template__.render
 __vue_options__.staticRenderFns = __vue_template__.staticRenderFns
 
 module.exports = __vue_exports__
 
 
 /***/ }),
-/* 25 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __vue_exports__, __vue_options__
 var __vue_styles__ = {}
 
 /* script */
-__vue_exports__ = __webpack_require__(10)
+__vue_exports__ = __webpack_require__(25)
 
 /* template */
-var __vue_template__ = __webpack_require__(43)
+var __vue_template__ = __webpack_require__(79)
 __vue_options__ = __vue_exports__ = __vue_exports__ || {}
 if (
   typeof __vue_exports__.default === "object" ||
@@ -7225,26 +9304,24 @@ if (typeof __vue_options__ === "function") {
   __vue_options__ = __vue_options__.options
 }
 
-if(typeof __vue_options__.name === "undefined") {
-  __vue_options__.name = "DropdownField"
-}__vue_options__.render = __vue_template__.render
+__vue_options__.render = __vue_template__.render
 __vue_options__.staticRenderFns = __vue_template__.staticRenderFns
 
 module.exports = __vue_exports__
 
 
 /***/ }),
-/* 26 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __vue_exports__, __vue_options__
 var __vue_styles__ = {}
 
 /* script */
-__vue_exports__ = __webpack_require__(11)
+__vue_exports__ = __webpack_require__(26)
 
 /* template */
-var __vue_template__ = __webpack_require__(35)
+var __vue_template__ = __webpack_require__(65)
 __vue_options__ = __vue_exports__ = __vue_exports__ || {}
 if (
   typeof __vue_exports__.default === "object" ||
@@ -7256,26 +9333,24 @@ if (typeof __vue_options__ === "function") {
   __vue_options__ = __vue_options__.options
 }
 
-if(typeof __vue_options__.name === "undefined") {
-  __vue_options__.name = "LoginForm"
-}__vue_options__.render = __vue_template__.render
+__vue_options__.render = __vue_template__.render
 __vue_options__.staticRenderFns = __vue_template__.staticRenderFns
 
 module.exports = __vue_exports__
 
 
 /***/ }),
-/* 27 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __vue_exports__, __vue_options__
 var __vue_styles__ = {}
 
 /* script */
-__vue_exports__ = __webpack_require__(12)
+__vue_exports__ = __webpack_require__(28)
 
 /* template */
-var __vue_template__ = __webpack_require__(36)
+var __vue_template__ = __webpack_require__(66)
 __vue_options__ = __vue_exports__ = __vue_exports__ || {}
 if (
   typeof __vue_exports__.default === "object" ||
@@ -7287,26 +9362,24 @@ if (typeof __vue_options__ === "function") {
   __vue_options__ = __vue_options__.options
 }
 
-if(typeof __vue_options__.name === "undefined") {
-  __vue_options__.name = "LoginPage"
-}__vue_options__.render = __vue_template__.render
+__vue_options__.render = __vue_template__.render
 __vue_options__.staticRenderFns = __vue_template__.staticRenderFns
 
 module.exports = __vue_exports__
 
 
 /***/ }),
-/* 28 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __vue_exports__, __vue_options__
 var __vue_styles__ = {}
 
 /* script */
-__vue_exports__ = __webpack_require__(13)
+__vue_exports__ = __webpack_require__(30)
 
 /* template */
-var __vue_template__ = __webpack_require__(48)
+var __vue_template__ = __webpack_require__(78)
 __vue_options__ = __vue_exports__ = __vue_exports__ || {}
 if (
   typeof __vue_exports__.default === "object" ||
@@ -7318,26 +9391,24 @@ if (typeof __vue_options__ === "function") {
   __vue_options__ = __vue_options__.options
 }
 
-if(typeof __vue_options__.name === "undefined") {
-  __vue_options__.name = "ObjectList"
-}__vue_options__.render = __vue_template__.render
+__vue_options__.render = __vue_template__.render
 __vue_options__.staticRenderFns = __vue_template__.staticRenderFns
 
 module.exports = __vue_exports__
 
 
 /***/ }),
-/* 29 */
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __vue_exports__, __vue_options__
 var __vue_styles__ = {}
 
 /* script */
-__vue_exports__ = __webpack_require__(14)
+__vue_exports__ = __webpack_require__(31)
 
 /* template */
-var __vue_template__ = __webpack_require__(41)
+var __vue_template__ = __webpack_require__(63)
 __vue_options__ = __vue_exports__ = __vue_exports__ || {}
 if (
   typeof __vue_exports__.default === "object" ||
@@ -7349,26 +9420,24 @@ if (typeof __vue_options__ === "function") {
   __vue_options__ = __vue_options__.options
 }
 
-if(typeof __vue_options__.name === "undefined") {
-  __vue_options__.name = "PrimaryButton"
-}__vue_options__.render = __vue_template__.render
+__vue_options__.render = __vue_template__.render
 __vue_options__.staticRenderFns = __vue_template__.staticRenderFns
 
 module.exports = __vue_exports__
 
 
 /***/ }),
-/* 30 */
+/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __vue_exports__, __vue_options__
 var __vue_styles__ = {}
 
 /* script */
-__vue_exports__ = __webpack_require__(15)
+__vue_exports__ = __webpack_require__(33)
 
 /* template */
-var __vue_template__ = __webpack_require__(46)
+var __vue_template__ = __webpack_require__(72)
 __vue_options__ = __vue_exports__ = __vue_exports__ || {}
 if (
   typeof __vue_exports__.default === "object" ||
@@ -7380,26 +9449,24 @@ if (typeof __vue_options__ === "function") {
   __vue_options__ = __vue_options__.options
 }
 
-if(typeof __vue_options__.name === "undefined") {
-  __vue_options__.name = "RadioButtonField"
-}__vue_options__.render = __vue_template__.render
+__vue_options__.render = __vue_template__.render
 __vue_options__.staticRenderFns = __vue_template__.staticRenderFns
 
 module.exports = __vue_exports__
 
 
 /***/ }),
-/* 31 */
+/* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __vue_exports__, __vue_options__
 var __vue_styles__ = {}
 
 /* script */
-__vue_exports__ = __webpack_require__(16)
+__vue_exports__ = __webpack_require__(35)
 
 /* template */
-var __vue_template__ = __webpack_require__(45)
+var __vue_template__ = __webpack_require__(82)
 __vue_options__ = __vue_exports__ = __vue_exports__ || {}
 if (
   typeof __vue_exports__.default === "object" ||
@@ -7411,26 +9478,24 @@ if (typeof __vue_options__ === "function") {
   __vue_options__ = __vue_options__.options
 }
 
-if(typeof __vue_options__.name === "undefined") {
-  __vue_options__.name = "RegisterForm"
-}__vue_options__.render = __vue_template__.render
+__vue_options__.render = __vue_template__.render
 __vue_options__.staticRenderFns = __vue_template__.staticRenderFns
 
 module.exports = __vue_exports__
 
 
 /***/ }),
-/* 32 */
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __vue_exports__, __vue_options__
 var __vue_styles__ = {}
 
 /* script */
-__vue_exports__ = __webpack_require__(17)
+__vue_exports__ = __webpack_require__(36)
 
 /* template */
-var __vue_template__ = __webpack_require__(42)
+var __vue_template__ = __webpack_require__(81)
 __vue_options__ = __vue_exports__ = __vue_exports__ || {}
 if (
   typeof __vue_exports__.default === "object" ||
@@ -7442,26 +9507,88 @@ if (typeof __vue_options__ === "function") {
   __vue_options__ = __vue_options__.options
 }
 
-if(typeof __vue_options__.name === "undefined") {
-  __vue_options__.name = "RegisterPage"
-}__vue_options__.render = __vue_template__.render
+__vue_options__.render = __vue_template__.render
 __vue_options__.staticRenderFns = __vue_template__.staticRenderFns
 
 module.exports = __vue_exports__
 
 
 /***/ }),
-/* 33 */
+/* 54 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __vue_exports__, __vue_options__
+var __vue_styles__ = {}
+
+/* styles */
+
+/* script */
+__vue_exports__ = __webpack_require__(37)
+
+/* template */
+var __vue_template__ = __webpack_require__(68)
+__vue_options__ = __vue_exports__ = __vue_exports__ || {}
+if (
+  typeof __vue_exports__.default === "object" ||
+  typeof __vue_exports__.default === "function"
+) {
+__vue_options__ = __vue_exports__ = __vue_exports__.default
+}
+if (typeof __vue_options__ === "function") {
+  __vue_options__ = __vue_options__.options
+}
+
+__vue_options__.render = __vue_template__.render
+__vue_options__.staticRenderFns = __vue_template__.staticRenderFns
+__vue_options__._scopeId = "data-v-3fc19cac"
+
+module.exports = __vue_exports__
+
+
+/***/ }),
+/* 55 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __vue_exports__, __vue_options__
+var __vue_styles__ = {}
+
+/* styles */
+
+/* script */
+__vue_exports__ = __webpack_require__(38)
+
+/* template */
+var __vue_template__ = __webpack_require__(69)
+__vue_options__ = __vue_exports__ = __vue_exports__ || {}
+if (
+  typeof __vue_exports__.default === "object" ||
+  typeof __vue_exports__.default === "function"
+) {
+__vue_options__ = __vue_exports__ = __vue_exports__.default
+}
+if (typeof __vue_options__ === "function") {
+  __vue_options__ = __vue_options__.options
+}
+
+__vue_options__.render = __vue_template__.render
+__vue_options__.staticRenderFns = __vue_template__.staticRenderFns
+__vue_options__._scopeId = "data-v-3fcfb42d"
+
+module.exports = __vue_exports__
+
+
+/***/ }),
+/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __vue_exports__, __vue_options__
 var __vue_styles__ = {}
 
 /* script */
-__vue_exports__ = __webpack_require__(18)
+__vue_exports__ = __webpack_require__(39)
 
 /* template */
-var __vue_template__ = __webpack_require__(44)
+var __vue_template__ = __webpack_require__(61)
 __vue_options__ = __vue_exports__ = __vue_exports__ || {}
 if (
   typeof __vue_exports__.default === "object" ||
@@ -7473,26 +9600,56 @@ if (typeof __vue_options__ === "function") {
   __vue_options__ = __vue_options__.options
 }
 
-if(typeof __vue_options__.name === "undefined") {
-  __vue_options__.name = "StyleGuide"
-}__vue_options__.render = __vue_template__.render
+__vue_options__.render = __vue_template__.render
 __vue_options__.staticRenderFns = __vue_template__.staticRenderFns
 
 module.exports = __vue_exports__
 
 
 /***/ }),
-/* 34 */
+/* 57 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __vue_exports__, __vue_options__
+var __vue_styles__ = {}
+
+/* styles */
+
+/* script */
+__vue_exports__ = __webpack_require__(40)
+
+/* template */
+var __vue_template__ = __webpack_require__(70)
+__vue_options__ = __vue_exports__ = __vue_exports__ || {}
+if (
+  typeof __vue_exports__.default === "object" ||
+  typeof __vue_exports__.default === "function"
+) {
+__vue_options__ = __vue_exports__ = __vue_exports__.default
+}
+if (typeof __vue_options__ === "function") {
+  __vue_options__ = __vue_options__.options
+}
+
+__vue_options__.render = __vue_template__.render
+__vue_options__.staticRenderFns = __vue_template__.staticRenderFns
+__vue_options__._scopeId = "data-v-46243650"
+
+module.exports = __vue_exports__
+
+
+/***/ }),
+/* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __vue_exports__, __vue_options__
 var __vue_styles__ = {}
 
 /* script */
-__vue_exports__ = __webpack_require__(20)
+__vue_exports__ = __webpack_require__(41)
 
 /* template */
-var __vue_template__ = __webpack_require__(39)
+var __vue_template__ = __webpack_require__(84)
 __vue_options__ = __vue_exports__ = __vue_exports__ || {}
 if (
   typeof __vue_exports__.default === "object" ||
@@ -7504,16 +9661,131 @@ if (typeof __vue_options__ === "function") {
   __vue_options__ = __vue_options__.options
 }
 
-if(typeof __vue_options__.name === "undefined") {
-  __vue_options__.name = "TextAreaField"
-}__vue_options__.render = __vue_template__.render
+__vue_options__.render = __vue_template__.render
 __vue_options__.staticRenderFns = __vue_template__.staticRenderFns
 
 module.exports = __vue_exports__
 
 
 /***/ }),
-/* 35 */
+/* 59 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __vue_exports__, __vue_options__
+var __vue_styles__ = {}
+
+/* script */
+__vue_exports__ = __webpack_require__(42)
+
+/* template */
+var __vue_template__ = __webpack_require__(73)
+__vue_options__ = __vue_exports__ = __vue_exports__ || {}
+if (
+  typeof __vue_exports__.default === "object" ||
+  typeof __vue_exports__.default === "function"
+) {
+__vue_options__ = __vue_exports__ = __vue_exports__.default
+}
+if (typeof __vue_options__ === "function") {
+  __vue_options__ = __vue_options__.options
+}
+
+__vue_options__.render = __vue_template__.render
+__vue_options__.staticRenderFns = __vue_template__.staticRenderFns
+
+module.exports = __vue_exports__
+
+
+/***/ }),
+/* 60 */
+/***/ (function(module, exports) {
+
+module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('footer', {
+    staticClass: "hxb-footer"
+  }, [_c('ul', {
+    staticClass: "hxb-footer-list"
+  }, [_c('li', {
+    staticClass: "hxb-footer-list__action"
+  }, [_c('router-link', {
+    attrs: {
+      "to": "/todo"
+    }
+  }, [_vm._v("To Do")])], 1), _vm._v(" "), _c('li', {
+    staticClass: "hxb-footer-list__action"
+  }, [_c('router-link', {
+    attrs: {
+      "to": "/search"
+    }
+  }, [_vm._v("Search")])], 1), _vm._v(" "), _c('li', {
+    staticClass: "hxb-footer-list__action"
+  }, [_c('router-link', {
+    attrs: {
+      "to": "/new"
+    }
+  }, [_vm._v("New")])], 1)])])
+},staticRenderFns: []}
+
+/***/ }),
+/* 61 */
+/***/ (function(module, exports) {
+
+module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('div', [_c('app-header'), _vm._v(" "), _c('h1', {
+    staticClass: "hxb-u-pdl-1"
+  }, [_vm._v("Time to make a new...")]), _vm._v(" "), _c('object-list', {
+    attrs: {
+      "objects": _vm.objects,
+      "is-indented": _vm.isIndented
+    }
+  }), _vm._v(" "), _c('app-footer')], 1)
+},staticRenderFns: []}
+
+/***/ }),
+/* 62 */
+/***/ (function(module, exports) {
+
+module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _vm._m(0)
+},staticRenderFns: [function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('header', {
+    staticClass: "hxb-header"
+  }, [_c('span', {
+    staticClass: "hxb-header__title"
+  }, [_vm._v("Hexelberry Orchard")])])
+}]}
+
+/***/ }),
+/* 63 */
+/***/ (function(module, exports) {
+
+module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('button', {
+    staticClass: "hxb-remove-button",
+    attrs: {
+      "type": "button"
+    },
+    on: {
+      "click": _vm.remove
+    }
+  }, [_vm._v("x")])
+},staticRenderFns: []}
+
+/***/ }),
+/* 64 */
+/***/ (function(module, exports) {
+
+module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('button', {
+    staticClass: "hxb-button",
+    attrs: {
+      "type": "submit"
+    }
+  }, [_vm._v(_vm._s(_vm.text))])
+},staticRenderFns: []}
+
+/***/ }),
+/* 65 */
 /***/ (function(module, exports) {
 
 module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
@@ -7527,12 +9799,14 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
   }, [_c('text-field', {
     attrs: {
       "id": "username",
+      "label": "username",
       "type": "text",
       "placeholder": "username"
     }
   }), _vm._v(" "), _c('text-field', {
     attrs: {
       "id": "password",
+      "label": "password",
       "type": "password",
       "placeholder": "password"
     }
@@ -7549,49 +9823,169 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
 },staticRenderFns: []}
 
 /***/ }),
-/* 36 */
-/***/ (function(module, exports) {
-
-module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
-  return _c('article', [_c('h1', {
-    staticClass: "hxb-u-txt-center"
-  }, [_vm._v("Hexelberry Orchard")]), _vm._v(" "), _c('login-form')], 1)
-},staticRenderFns: []}
-
-/***/ }),
-/* 37 */
+/* 66 */
 /***/ (function(module, exports) {
 
 module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
   return _c('button', {
     staticClass: "hxb-button",
     attrs: {
-      "type": "submit"
+      "type": "button"
     }
   }, [_vm._v(_vm._s(_vm.text))])
 },staticRenderFns: []}
 
 /***/ }),
-/* 38 */
+/* 67 */
 /***/ (function(module, exports) {
 
 module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
-  return _c('ul', {
-    staticClass: "hxb-choice-list"
-  }, _vm._l((_vm.choices), function(choice) {
-    return _c('li', {
-      staticClass: "hxb-choice-list-item"
-    }, [_c('a', {
-      staticClass: "hxb-choice-list-item__link",
-      attrs: {
-        "href": choice.link
-      }
-    }, [_c('span', [_vm._v(_vm._s(choice.label))])])])
-  }))
+  return _c('div', {
+    staticClass: "hxb-field-card"
+  }, [_c('remove-button', {
+    attrs: {
+      "remove": _vm.remove
+    }
+  }), _vm._v(" "), _c('text-field', {
+    attrs: {
+      "id": _vm.fieldLabel,
+      "label": "Field Label"
+    }
+  }), _vm._v(" "), _c('dropdown-field', {
+    attrs: {
+      "id": _vm.fieldType,
+      "label": "Field Type",
+      "options": _vm.fieldTypes
+    }
+  }), _vm._v(" "), _c('radio-button-field', {
+    attrs: {
+      "id": _vm.showInPreview,
+      "label": "Show in preview?",
+      "options": _vm.radioButtonOptions
+    }
+  })], 1)
 },staticRenderFns: []}
 
 /***/ }),
-/* 39 */
+/* 68 */
+/***/ (function(module, exports) {
+
+module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('div', [_c('app-header'), _vm._v(" "), (!_vm.areTemplatesLoaded()) ? _c('h1', {
+    staticClass: "hxb-u-pdl-1 hxb-u-txt-center"
+  }, [_vm._v("Loading...")]) : _vm._e(), _vm._v(" "), (_vm.templates.length > 0) ? _c('h1', {
+    staticClass: "hxb-u-pdl-1"
+  }, [_vm._v("What would you like to organize today?")]) : _vm._e(), _vm._v(" "), (_vm.templates.length > 0) ? _c('form', {
+    staticClass: "hxb-form",
+    attrs: {
+      "name": "set_template",
+      "method": "GET",
+      "action": "/new-item-page-2"
+    }
+  }, [_c('dropdown-field', {
+    attrs: {
+      "id": "templates",
+      "label": "Select a template",
+      "options": _vm.templates
+    }
+  }), _vm._v(" "), _c('div', {
+    staticClass: "hxb-form-field"
+  }, [_c('submit-button', {
+    attrs: {
+      "text": "Save"
+    }
+  })], 1)], 1) : _vm._e(), _vm._v(" "), (_vm.areTemplatesLoaded() && _vm.templates.length === 0) ? _c('h1', {
+    staticClass: "hxb-u-pdl-1 hxb-u-txt-center"
+  }, [_vm._v("No templates found. Please make a template first.")]) : _vm._e(), _vm._v(" "), _c('app-footer')], 1)
+},staticRenderFns: []}
+
+/***/ }),
+/* 69 */
+/***/ (function(module, exports) {
+
+module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('div', [_c('app-header'), _vm._v(" "), (_vm.template) ? _c('h1', {
+    staticClass: "hxb-u-pdl-1"
+  }, [_vm._v("Time to add a new " + _vm._s(_vm.template.name) + "!")]) : _vm._e(), _vm._v(" "), _c('form', {
+    staticClass: "hxb-form",
+    attrs: {
+      "name": "new_item",
+      "method": "POST",
+      "action": "/new-item"
+    },
+    on: {
+      "submit": _vm.addItem
+    }
+  }, [_c('text-field', {
+    attrs: {
+      "id": "name",
+      "label": "Name"
+    }
+  }), _vm._v(" "), _vm._l((_vm.template.fields), function(field) {
+    return void 0
+  }), _vm._v(" "), _c('div', {
+    staticClass: "hxb-form-field"
+  }, [_c('submit-button', {
+    attrs: {
+      "text": "Save"
+    }
+  })], 1)], 2), _vm._v(" "), _c('app-footer')], 1)
+},staticRenderFns: []}
+
+/***/ }),
+/* 70 */
+/***/ (function(module, exports) {
+
+module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('div', [_c('app-header'), _vm._v(" "), _c('h1', {
+    staticClass: "hxb-u-pdl-1"
+  }, [_vm._v("Time to make a new template!")]), _vm._v(" "), _c('form', {
+    staticClass: "hxb-form",
+    attrs: {
+      "name": "new-template",
+      "method": "POST",
+      "action": "/new-template"
+    },
+    on: {
+      "submit": _vm.addTemplate
+    }
+  }, [_c('text-field', {
+    attrs: {
+      "id": "name",
+      "label": "Name"
+    }
+  }), _vm._v(" "), _vm._l((_vm.fields), function(field, index) {
+    return [_c('field-card', {
+      attrs: {
+        "fieldIndex": index,
+        "removeField": _vm.removeField
+      }
+    })]
+  }), _vm._v(" "), _c('add-item-button'), _vm._v(" "), _c('div', {
+    staticClass: "hxb-form-field"
+  }, [_c('submit-button', {
+    attrs: {
+      "text": "Save"
+    }
+  })], 1)], 2), _vm._v(" "), _c('app-footer')], 1)
+},staticRenderFns: []}
+
+/***/ }),
+/* 71 */
+/***/ (function(module, exports) {
+
+module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('main', {
+    attrs: {
+      "id": "app"
+    }
+  }, [_c('router-view', {
+    staticClass: "view"
+  })], 1)
+},staticRenderFns: []}
+
+/***/ }),
+/* 72 */
 /***/ (function(module, exports) {
 
 module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
@@ -7610,86 +10004,15 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
       "placeholder": _vm.placeholder,
       "rows": "10",
       "cols": "50"
+    },
+    on: {
+      "input": _vm.update
     }
   }, [_vm._v(_vm._s(_vm.value))])])
 },staticRenderFns: []}
 
 /***/ }),
-/* 40 */
-/***/ (function(module, exports) {
-
-module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
-  return _c('div', {
-    staticClass: "hxb-form-field"
-  }, [_c('input', {
-    staticClass: "hxb-checkbox",
-    attrs: {
-      "id": _vm.id,
-      "type": "checkbox",
-      "name": _vm.id
-    },
-    domProps: {
-      "value": _vm.value
-    }
-  }), _vm._v(" "), _c('label', {
-    staticClass: "hxb-checkbox-label",
-    attrs: {
-      "for": _vm.id
-    }
-  }, [_vm._v("\n    " + _vm._s(_vm.label) + "\n  ")])])
-},staticRenderFns: []}
-
-/***/ }),
-/* 41 */
-/***/ (function(module, exports) {
-
-module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
-  return _c('button', {
-    staticClass: "hxb-button",
-    attrs: {
-      "type": "button"
-    }
-  }, [_vm._v(_vm._s(_vm.text))])
-},staticRenderFns: []}
-
-/***/ }),
-/* 42 */
-/***/ (function(module, exports) {
-
-module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
-  return _c('article', [_c('h1', {
-    staticClass: "hxb-u-txt-center"
-  }, [_vm._v("Hexelberry Orchard")]), _vm._v(" "), _c('register-form')], 1)
-},staticRenderFns: []}
-
-/***/ }),
-/* 43 */
-/***/ (function(module, exports) {
-
-module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
-  return _c('div', {
-    staticClass: "hxb-form-field"
-  }, [_c('label', {
-    staticClass: "hxb-u-display-block",
-    attrs: {
-      "for": _vm.id
-    }
-  }, [_vm._v(_vm._s(_vm.label))]), _vm._v(" "), _c('select', {
-    staticClass: "hxb-dropdown",
-    attrs: {
-      "id": _vm.id
-    }
-  }, _vm._l((_vm.options), function(option) {
-    return _c('option', {
-      domProps: {
-        "value": option.value
-      }
-    }, [_vm._v("option.label")])
-  }))])
-},staticRenderFns: []}
-
-/***/ }),
-/* 44 */
+/* 73 */
 /***/ (function(module, exports) {
 
 module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
@@ -7820,7 +10143,34 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     attrs: {
       "id": "choice_list"
     }
-  })])]), _vm._v(" "), _vm._m(6)])
+  })])]), _vm._v(" "), _c('article', [_vm._m(6), _vm._v(" "), _c('section', {
+    attrs: {
+      "id": "field_card_doc"
+    }
+  }, [_c('div', {
+    staticClass: "hxb-form"
+  }, [_c('field-card', {
+    attrs: {
+      "fieldIndex": _vm.index,
+      "removeField": _vm.removeField
+    }
+  })], 1), _vm._v(" "), _c('code', {
+    staticClass: "component-js",
+    attrs: {
+      "id": "field_card"
+    }
+  })]), _vm._v(" "), _c('section', {
+    attrs: {
+      "id": "add_item_button_doc"
+    }
+  }, [_c('div', {
+    staticClass: "hxb-form"
+  }, [_c('add-item-button')], 1), _vm._v(" "), _c('code', {
+    staticClass: "component-js",
+    attrs: {
+      "id": "add_item_button"
+    }
+  })])]), _vm._v(" "), _vm._m(7)])
 },staticRenderFns: [function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
   return _c('article', [_c('header', [_c('h2', {
     attrs: {
@@ -7910,6 +10260,12 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     }
   }, [_vm._v("Lists")])])
 },function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('header', [_c('h2', {
+    attrs: {
+      "id": "cards"
+    }
+  }, [_vm._v("Cards")])])
+},function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
   return _c('article', [_c('header', [_c('h2', {
     attrs: {
       "id": ""
@@ -7927,38 +10283,50 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
 }]}
 
 /***/ }),
-/* 45 */
+/* 74 */
 /***/ (function(module, exports) {
 
 module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
-  return _c('form', {
-    staticClass: "hxb-form",
-    attrs: {
-      "name": "register",
-      "method": "post",
-      "action": "/register"
-    }
-  }, [_c('text-field', {
-    attrs: {
-      "id": "username",
-      "type": "text",
-      "placeholder": "username"
-    }
-  }), _vm._v(" "), _c('text-field', {
-    attrs: {
-      "id": "password",
-      "type": "password",
-      "placeholder": "password"
-    }
-  }), _vm._v(" "), _c('submit-button', {
-    attrs: {
-      "text": "Register"
-    }
-  })], 1)
+  return _c('ul', {
+    staticClass: "hxb-choice-list"
+  }, _vm._l((_vm.choices), function(choice) {
+    return _c('li', {
+      staticClass: "hxb-choice-list-item"
+    }, [_c('router-link', {
+      staticClass: "hxb-choice-list-item__link",
+      attrs: {
+        "to": choice.link
+      }
+    }, [_c('span', [_vm._v(_vm._s(choice.label))])])], 1)
+  }))
 },staticRenderFns: []}
 
 /***/ }),
-/* 46 */
+/* 75 */
+/***/ (function(module, exports) {
+
+module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('ul', {
+    staticClass: "hxb-object-list",
+    class: {
+      'is-indented': _vm.isIndented
+    }
+  }, _vm._l((_vm.objects), function(object) {
+    return _c('li', {
+      staticClass: "hxb-object-list-item"
+    }, [_c('router-link', {
+      staticClass: "hxb-object-list-item__link",
+      attrs: {
+        "to": object.link
+      }
+    }, [_c('span', [_vm._v(_vm._s(object.label))]), _vm._v(" "), _c('span', {
+      staticClass: "hxb-object-list-item__arrow"
+    }, [_vm._v("⇢")])])], 1)
+  }))
+},staticRenderFns: []}
+
+/***/ }),
+/* 76 */
 /***/ (function(module, exports) {
 
 module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
@@ -7973,54 +10341,23 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
         "name": _vm.id
       },
       domProps: {
+        "checked": _vm.isChecked(option.value),
         "value": option.value
+      },
+      on: {
+        "change": _vm.update
       }
     }), _vm._v(" "), _c('label', {
       staticClass: "hxb-radio-button-label",
       attrs: {
         "for": _vm.id + '_' + index
       }
-    }, [_vm._v("\n      " + _vm._s(option.value) + "\n    ")])]
+    }, [_vm._v("\n      " + _vm._s(option.label) + "\n    ")])]
   })], 2)
 },staticRenderFns: []}
 
 /***/ }),
-/* 47 */
-/***/ (function(module, exports) {
-
-module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
-  return _c('main', {
-    attrs: {
-      "id": "app"
-    }
-  }, [_c('router-view', {
-    staticClass: "view"
-  })], 1)
-},staticRenderFns: []}
-
-/***/ }),
-/* 48 */
-/***/ (function(module, exports) {
-
-module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
-  return _c('ul', {
-    staticClass: "hxb-object-list"
-  }, _vm._l((_vm.objects), function(object) {
-    return _c('li', {
-      staticClass: "hxb-object-list-item"
-    }, [_c('a', {
-      staticClass: "hxb-object-list-item__link",
-      attrs: {
-        "href": "object.link"
-      }
-    }, [_c('span', [_vm._v(_vm._s(object.label))]), _vm._v(" "), _c('span', {
-      staticClass: "hxb-object-list-item__arrow"
-    }, [_vm._v("⇢")])])])
-  }))
-},staticRenderFns: []}
-
-/***/ }),
-/* 49 */
+/* 77 */
 /***/ (function(module, exports) {
 
 module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
@@ -8041,12 +10378,175 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     },
     domProps: {
       "value": _vm.value
+    },
+    on: {
+      "input": _vm.update
     }
   })])
 },staticRenderFns: []}
 
 /***/ }),
-/* 50 */
+/* 78 */
+/***/ (function(module, exports) {
+
+module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('form', {
+    staticClass: "hxb-form",
+    attrs: {
+      "name": "register",
+      "method": "post",
+      "action": "/app/register"
+    },
+    on: {
+      "submit": _vm.register
+    }
+  }, [_c('text-field', {
+    attrs: {
+      "id": "username",
+      "label": "username",
+      "type": "text",
+      "placeholder": "username"
+    }
+  }), _vm._v(" "), _c('text-field', {
+    attrs: {
+      "id": "password",
+      "label": "password",
+      "type": "password",
+      "placeholder": "password"
+    }
+  }), _vm._v(" "), _c('submit-button', {
+    attrs: {
+      "text": "Register"
+    }
+  })], 1)
+},staticRenderFns: []}
+
+/***/ }),
+/* 79 */
+/***/ (function(module, exports) {
+
+module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('object-list', {
+    attrs: {
+      "objects": _vm.items
+    }
+  })
+},staticRenderFns: []}
+
+/***/ }),
+/* 80 */
+/***/ (function(module, exports) {
+
+module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('button', {
+    staticClass: "hxb-field-card hxb-add-item-button",
+    attrs: {
+      "type": "button"
+    },
+    on: {
+      "click": _vm.addField
+    }
+  }, [_c('span', {
+    staticClass: "hxb-add-item-button__icon"
+  }, [_vm._v("+")])])
+},staticRenderFns: []}
+
+/***/ }),
+/* 81 */
+/***/ (function(module, exports) {
+
+module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('article', [_vm._m(0), _vm._v(" "), _c('login-form')], 1)
+},staticRenderFns: [function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('header', [_c('h1', {
+    staticClass: "hxb-u-txt-center"
+  }, [_vm._v("Hexelberry Orchard")])])
+}]}
+
+/***/ }),
+/* 82 */
+/***/ (function(module, exports) {
+
+module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('div', [_c('app-header'), _vm._v(" "), _c('article', [_c('item-directory', {
+    attrs: {
+      "path": "/"
+    }
+  })], 1), _vm._v(" "), _c('app-footer')], 1)
+},staticRenderFns: []}
+
+/***/ }),
+/* 83 */
+/***/ (function(module, exports) {
+
+module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('div', {
+    staticClass: "hxb-form-field"
+  }, [_c('label', {
+    staticClass: "hxb-u-display-block",
+    attrs: {
+      "for": _vm.id
+    }
+  }, [_vm._v(_vm._s(_vm.label))]), _vm._v(" "), _c('select', {
+    staticClass: "hxb-dropdown",
+    attrs: {
+      "id": _vm.id
+    },
+    on: {
+      "change": _vm.update
+    }
+  }, _vm._l((_vm.options), function(option) {
+    return _c('option', {
+      domProps: {
+        "value": option.value,
+        "selected": _vm.isSelected(option.value)
+      }
+    }, [_vm._v(_vm._s(option.label))])
+  }))])
+},staticRenderFns: []}
+
+/***/ }),
+/* 84 */
+/***/ (function(module, exports) {
+
+module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('div', [_vm._m(0), _vm._v(" "), _c('register-form')], 1)
+},staticRenderFns: [function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('header', [_c('h1', {
+    staticClass: "hxb-u-txt-center"
+  }, [_vm._v("Hexelberry Orchard")])])
+}]}
+
+/***/ }),
+/* 85 */
+/***/ (function(module, exports) {
+
+module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('div', {
+    staticClass: "hxb-form-field"
+  }, [_c('input', {
+    staticClass: "hxb-checkbox",
+    attrs: {
+      "id": _vm.id,
+      "type": "checkbox",
+      "name": _vm.id
+    },
+    domProps: {
+      "value": _vm.value
+    },
+    on: {
+      "change": _vm.update
+    }
+  }), _vm._v(" "), _c('label', {
+    staticClass: "hxb-checkbox-label",
+    attrs: {
+      "for": _vm.id
+    }
+  }, [_vm._v("\n    " + _vm._s(_vm.label) + "\n  ")])])
+},staticRenderFns: []}
+
+/***/ }),
+/* 86 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10155,7 +12655,7 @@ if (inBrowser && window.Vue) {
 module.exports = VueRouter;
 
 /***/ }),
-/* 51 */
+/* 87 */
 /***/ (function(module, exports) {
 
 exports.sync = function (store, router) {
@@ -10205,784 +12705,18 @@ exports.sync = function (store, router) {
 
 
 /***/ }),
-/* 52 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
- * vuex v2.1.1
- * (c) 2016 Evan You
- * @license MIT
- */
-(function (global, factory) {
-   true ? module.exports = factory() :
-  typeof define === 'function' && define.amd ? define(factory) :
-  (global.Vuex = factory());
-}(this, (function () { 'use strict';
-
-var devtoolHook =
-  typeof window !== 'undefined' &&
-  window.__VUE_DEVTOOLS_GLOBAL_HOOK__
-
-function devtoolPlugin (store) {
-  if (!devtoolHook) { return }
-
-  store._devtoolHook = devtoolHook
-
-  devtoolHook.emit('vuex:init', store)
-
-  devtoolHook.on('vuex:travel-to-state', function (targetState) {
-    store.replaceState(targetState)
-  })
-
-  store.subscribe(function (mutation, state) {
-    devtoolHook.emit('vuex:mutation', mutation, state)
-  })
-}
-
-function applyMixin (Vue) {
-  var version = Number(Vue.version.split('.')[0])
-
-  if (version >= 2) {
-    var usesInit = Vue.config._lifecycleHooks.indexOf('init') > -1
-    Vue.mixin(usesInit ? { init: vuexInit } : { beforeCreate: vuexInit })
-  } else {
-    // override init and inject vuex init procedure
-    // for 1.x backwards compatibility.
-    var _init = Vue.prototype._init
-    Vue.prototype._init = function (options) {
-      if ( options === void 0 ) options = {};
-
-      options.init = options.init
-        ? [vuexInit].concat(options.init)
-        : vuexInit
-      _init.call(this, options)
-    }
-  }
-
-  /**
-   * Vuex init hook, injected into each instances init hooks list.
-   */
-
-  function vuexInit () {
-    var options = this.$options
-    // store injection
-    if (options.store) {
-      this.$store = options.store
-    } else if (options.parent && options.parent.$store) {
-      this.$store = options.parent.$store
-    }
-  }
-}
-
-var mapState = normalizeNamespace(function (namespace, states) {
-  var res = {}
-  normalizeMap(states).forEach(function (ref) {
-    var key = ref.key;
-    var val = ref.val;
-
-    res[key] = function mappedState () {
-      var state = this.$store.state
-      var getters = this.$store.getters
-      if (namespace) {
-        var module = this.$store._modulesNamespaceMap[namespace]
-        if (!module) {
-          warnNamespace('mapState', namespace)
-          return
-        }
-        state = module.state
-        getters = module.context.getters
-      }
-      return typeof val === 'function'
-        ? val.call(this, state, getters)
-        : state[val]
-    }
-  })
-  return res
-})
-
-var mapMutations = normalizeNamespace(function (namespace, mutations) {
-  var res = {}
-  normalizeMap(mutations).forEach(function (ref) {
-    var key = ref.key;
-    var val = ref.val;
-
-    val = namespace + val
-    res[key] = function mappedMutation () {
-      var args = [], len = arguments.length;
-      while ( len-- ) args[ len ] = arguments[ len ];
-
-      return this.$store.commit.apply(this.$store, [val].concat(args))
-    }
-  })
-  return res
-})
-
-var mapGetters = normalizeNamespace(function (namespace, getters) {
-  var res = {}
-  normalizeMap(getters).forEach(function (ref) {
-    var key = ref.key;
-    var val = ref.val;
-
-    val = namespace + val
-    res[key] = function mappedGetter () {
-      if (!(val in this.$store.getters)) {
-        console.error(("[vuex] unknown getter: " + val))
-      }
-      return this.$store.getters[val]
-    }
-  })
-  return res
-})
-
-var mapActions = normalizeNamespace(function (namespace, actions) {
-  var res = {}
-  normalizeMap(actions).forEach(function (ref) {
-    var key = ref.key;
-    var val = ref.val;
-
-    val = namespace + val
-    res[key] = function mappedAction () {
-      var args = [], len = arguments.length;
-      while ( len-- ) args[ len ] = arguments[ len ];
-
-      return this.$store.dispatch.apply(this.$store, [val].concat(args))
-    }
-  })
-  return res
-})
-
-function normalizeMap (map) {
-  return Array.isArray(map)
-    ? map.map(function (key) { return ({ key: key, val: key }); })
-    : Object.keys(map).map(function (key) { return ({ key: key, val: map[key] }); })
-}
-
-function normalizeNamespace (fn) {
-  return function (namespace, map) {
-    if (typeof namespace !== 'string') {
-      map = namespace
-      namespace = ''
-    } else if (namespace.charAt(namespace.length - 1) !== '/') {
-      namespace += '/'
-    }
-    return fn(namespace, map)
-  }
-}
-
-function warnNamespace (helper, namespace) {
-  console.error(("[vuex] module namespace not found in " + helper + "(): " + namespace))
-}
-
-/**
- * forEach for object
- */
-function forEachValue (obj, fn) {
-  Object.keys(obj).forEach(function (key) { return fn(obj[key], key); })
-}
-
-function isObject (obj) {
-  return obj !== null && typeof obj === 'object'
-}
-
-function isPromise (val) {
-  return val && typeof val.then === 'function'
-}
-
-function assert (condition, msg) {
-  if (!condition) { throw new Error(("[vuex] " + msg)) }
-}
-
-var Module = function Module (rawModule, runtime) {
-  this.runtime = runtime
-  this._children = Object.create(null)
-  this._rawModule = rawModule
-};
-
-var prototypeAccessors$1 = { state: {},namespaced: {} };
-
-prototypeAccessors$1.state.get = function () {
-  return this._rawModule.state || {}
-};
-
-prototypeAccessors$1.namespaced.get = function () {
-  return !!this._rawModule.namespaced
-};
-
-Module.prototype.addChild = function addChild (key, module) {
-  this._children[key] = module
-};
-
-Module.prototype.removeChild = function removeChild (key) {
-  delete this._children[key]
-};
-
-Module.prototype.getChild = function getChild (key) {
-  return this._children[key]
-};
-
-Module.prototype.update = function update (rawModule) {
-  this._rawModule.namespaced = rawModule.namespaced
-  if (rawModule.actions) {
-    this._rawModule.actions = rawModule.actions
-  }
-  if (rawModule.mutations) {
-    this._rawModule.mutations = rawModule.mutations
-  }
-  if (rawModule.getters) {
-    this._rawModule.getters = rawModule.getters
-  }
-};
-
-Module.prototype.forEachChild = function forEachChild (fn) {
-  forEachValue(this._children, fn)
-};
-
-Module.prototype.forEachGetter = function forEachGetter (fn) {
-  if (this._rawModule.getters) {
-    forEachValue(this._rawModule.getters, fn)
-  }
-};
-
-Module.prototype.forEachAction = function forEachAction (fn) {
-  if (this._rawModule.actions) {
-    forEachValue(this._rawModule.actions, fn)
-  }
-};
-
-Module.prototype.forEachMutation = function forEachMutation (fn) {
-  if (this._rawModule.mutations) {
-    forEachValue(this._rawModule.mutations, fn)
-  }
-};
-
-Object.defineProperties( Module.prototype, prototypeAccessors$1 );
-
-var ModuleCollection = function ModuleCollection (rawRootModule) {
-  var this$1 = this;
-
-  // register root module (Vuex.Store options)
-  this.root = new Module(rawRootModule, false)
-
-  // register all nested modules
-  if (rawRootModule.modules) {
-    forEachValue(rawRootModule.modules, function (rawModule, key) {
-      this$1.register([key], rawModule, false)
-    })
-  }
-};
-
-ModuleCollection.prototype.get = function get (path) {
-  return path.reduce(function (module, key) {
-    return module.getChild(key)
-  }, this.root)
-};
-
-ModuleCollection.prototype.getNamespace = function getNamespace (path) {
-  var module = this.root
-  return path.reduce(function (namespace, key) {
-    module = module.getChild(key)
-    return namespace + (module.namespaced ? key + '/' : '')
-  }, '')
-};
-
-ModuleCollection.prototype.update = function update$1 (rawRootModule) {
-  update(this.root, rawRootModule)
-};
-
-ModuleCollection.prototype.register = function register (path, rawModule, runtime) {
-    var this$1 = this;
-    if ( runtime === void 0 ) runtime = true;
-
-  var parent = this.get(path.slice(0, -1))
-  var newModule = new Module(rawModule, runtime)
-  parent.addChild(path[path.length - 1], newModule)
-
-  // register nested modules
-  if (rawModule.modules) {
-    forEachValue(rawModule.modules, function (rawChildModule, key) {
-      this$1.register(path.concat(key), rawChildModule, runtime)
-    })
-  }
-};
-
-ModuleCollection.prototype.unregister = function unregister (path) {
-  var parent = this.get(path.slice(0, -1))
-  var key = path[path.length - 1]
-  if (!parent.getChild(key).runtime) { return }
-
-  parent.removeChild(key)
-};
-
-function update (targetModule, newModule) {
-  // update target module
-  targetModule.update(newModule)
-
-  // update nested modules
-  if (newModule.modules) {
-    for (var key in newModule.modules) {
-      if (!targetModule.getChild(key)) {
-        console.warn(
-          "[vuex] trying to add a new module '" + key + "' on hot reloading, " +
-          'manual reload is needed'
-        )
-        return
-      }
-      update(targetModule.getChild(key), newModule.modules[key])
-    }
-  }
-}
-
-var Vue // bind on install
-
-var Store = function Store (options) {
-  var this$1 = this;
-  if ( options === void 0 ) options = {};
-
-  assert(Vue, "must call Vue.use(Vuex) before creating a store instance.")
-  assert(typeof Promise !== 'undefined', "vuex requires a Promise polyfill in this browser.")
-
-  var state = options.state; if ( state === void 0 ) state = {};
-  var plugins = options.plugins; if ( plugins === void 0 ) plugins = [];
-  var strict = options.strict; if ( strict === void 0 ) strict = false;
-
-  // store internal state
-  this._committing = false
-  this._actions = Object.create(null)
-  this._mutations = Object.create(null)
-  this._wrappedGetters = Object.create(null)
-  this._modules = new ModuleCollection(options)
-  this._modulesNamespaceMap = Object.create(null)
-  this._subscribers = []
-  this._watcherVM = new Vue()
-
-  // bind commit and dispatch to self
-  var store = this
-  var ref = this;
-  var dispatch = ref.dispatch;
-  var commit = ref.commit;
-    this.dispatch = function boundDispatch (type, payload) {
-    return dispatch.call(store, type, payload)
-  }
-  this.commit = function boundCommit (type, payload, options) {
-    return commit.call(store, type, payload, options)
-    }
-
-    // strict mode
-  this.strict = strict
-
-  // init root module.
-  // this also recursively registers all sub-modules
-  // and collects all module getters inside this._wrappedGetters
-  installModule(this, state, [], this._modules.root)
-
-  // initialize the store vm, which is responsible for the reactivity
-  // (also registers _wrappedGetters as computed properties)
-  resetStoreVM(this, state)
-
-  // apply plugins
-  plugins.concat(devtoolPlugin).forEach(function (plugin) { return plugin(this$1); })
-};
-
-var prototypeAccessors = { state: {} };
-
-prototypeAccessors.state.get = function () {
-  return this._vm.$data.state
-};
-
-prototypeAccessors.state.set = function (v) {
-  assert(false, "Use store.replaceState() to explicit replace store state.")
-};
-
-Store.prototype.commit = function commit (_type, _payload, _options) {
-    var this$1 = this;
-
-  // check object-style commit
-  var ref = unifyObjectStyle(_type, _payload, _options);
-    var type = ref.type;
-    var payload = ref.payload;
-    var options = ref.options;
-
-  var mutation = { type: type, payload: payload }
-  var entry = this._mutations[type]
-  if (!entry) {
-    console.error(("[vuex] unknown mutation type: " + type))
-    return
-  }
-  this._withCommit(function () {
-    entry.forEach(function commitIterator (handler) {
-      handler(payload)
-    })
-  })
-  this._subscribers.forEach(function (sub) { return sub(mutation, this$1.state); })
-
-  if (options && options.silent) {
-    console.warn(
-      "[vuex] mutation type: " + type + ". Silent option has been removed. " +
-      'Use the filter functionality in the vue-devtools'
-    )
-  }
-};
-
-Store.prototype.dispatch = function dispatch (_type, _payload) {
-  // check object-style dispatch
-  var ref = unifyObjectStyle(_type, _payload);
-    var type = ref.type;
-    var payload = ref.payload;
-
-  var entry = this._actions[type]
-  if (!entry) {
-    console.error(("[vuex] unknown action type: " + type))
-    return
-  }
-  return entry.length > 1
-    ? Promise.all(entry.map(function (handler) { return handler(payload); }))
-    : entry[0](payload)
-};
-
-Store.prototype.subscribe = function subscribe (fn) {
-  var subs = this._subscribers
-  if (subs.indexOf(fn) < 0) {
-    subs.push(fn)
-  }
-  return function () {
-    var i = subs.indexOf(fn)
-    if (i > -1) {
-      subs.splice(i, 1)
-    }
-  }
-};
-
-Store.prototype.watch = function watch (getter, cb, options) {
-    var this$1 = this;
-
-  assert(typeof getter === 'function', "store.watch only accepts a function.")
-  return this._watcherVM.$watch(function () { return getter(this$1.state, this$1.getters); }, cb, options)
-};
-
-Store.prototype.replaceState = function replaceState (state) {
-    var this$1 = this;
-
-  this._withCommit(function () {
-    this$1._vm.state = state
-  })
-};
-
-Store.prototype.registerModule = function registerModule (path, rawModule) {
-  if (typeof path === 'string') { path = [path] }
-  assert(Array.isArray(path), "module path must be a string or an Array.")
-  this._modules.register(path, rawModule)
-  installModule(this, this.state, path, this._modules.get(path))
-  // reset store to update getters...
-  resetStoreVM(this, this.state)
-};
-
-Store.prototype.unregisterModule = function unregisterModule (path) {
-    var this$1 = this;
-
-  if (typeof path === 'string') { path = [path] }
-  assert(Array.isArray(path), "module path must be a string or an Array.")
-    this._modules.unregister(path)
-  this._withCommit(function () {
-    var parentState = getNestedState(this$1.state, path.slice(0, -1))
-    Vue.delete(parentState, path[path.length - 1])
-  })
-  resetStore(this)
-};
-
-Store.prototype.hotUpdate = function hotUpdate (newOptions) {
-  this._modules.update(newOptions)
-  resetStore(this)
-};
-
-Store.prototype._withCommit = function _withCommit (fn) {
-  var committing = this._committing
-  this._committing = true
-  fn()
-  this._committing = committing
-};
-
-Object.defineProperties( Store.prototype, prototypeAccessors );
-
-function resetStore (store) {
-  store._actions = Object.create(null)
-  store._mutations = Object.create(null)
-  store._wrappedGetters = Object.create(null)
-  store._modulesNamespaceMap = Object.create(null)
-  var state = store.state
-  // init all modules
-  installModule(store, state, [], store._modules.root, true)
-  // reset vm
-  resetStoreVM(store, state)
-}
-
-function resetStoreVM (store, state) {
-  var oldVm = store._vm
-
-  // bind store public getters
-  store.getters = {}
-  var wrappedGetters = store._wrappedGetters
-  var computed = {}
-  forEachValue(wrappedGetters, function (fn, key) {
-    // use computed to leverage its lazy-caching mechanism
-    computed[key] = function () { return fn(store); }
-    Object.defineProperty(store.getters, key, {
-      get: function () { return store._vm[key]; },
-      enumerable: true // for local getters
-    })
-  })
-
-  // use a Vue instance to store the state tree
-  // suppress warnings just in case the user has added
-  // some funky global mixins
-  var silent = Vue.config.silent
-  Vue.config.silent = true
-  store._vm = new Vue({
-    data: { state: state },
-    computed: computed
-  })
-  Vue.config.silent = silent
-
-  // enable strict mode for new vm
-  if (store.strict) {
-    enableStrictMode(store)
-  }
-
-  if (oldVm) {
-    // dispatch changes in all subscribed watchers
-    // to force getter re-evaluation.
-    store._withCommit(function () {
-      oldVm.state = null
-    })
-    Vue.nextTick(function () { return oldVm.$destroy(); })
-  }
-}
-
-function installModule (store, rootState, path, module, hot) {
-  var isRoot = !path.length
-  var namespace = store._modules.getNamespace(path)
-
-  // register in namespace map
-  if (namespace) {
-    store._modulesNamespaceMap[namespace] = module
-  }
-
-  // set state
-  if (!isRoot && !hot) {
-    var parentState = getNestedState(rootState, path.slice(0, -1))
-    var moduleName = path[path.length - 1]
-    store._withCommit(function () {
-      Vue.set(parentState, moduleName, module.state)
-    })
-  }
-
-  var local = module.context = makeLocalContext(store, namespace)
-
-  module.forEachMutation(function (mutation, key) {
-    var namespacedType = namespace + key
-    registerMutation(store, namespacedType, mutation, path)
-  })
-
-  module.forEachAction(function (action, key) {
-    var namespacedType = namespace + key
-    registerAction(store, namespacedType, action, local, path)
-  })
-
-  module.forEachGetter(function (getter, key) {
-    var namespacedType = namespace + key
-    registerGetter(store, namespacedType, getter, local, path)
-  })
-
-  module.forEachChild(function (child, key) {
-    installModule(store, rootState, path.concat(key), child, hot)
-  })
-}
-
-/**
- * make localized dispatch, commit and getters
- * if there is no namespace, just use root ones
- */
-function makeLocalContext (store, namespace) {
-  var noNamespace = namespace === ''
-
-  var local = {
-    dispatch: noNamespace ? store.dispatch : function (_type, _payload, _options) {
-      var args = unifyObjectStyle(_type, _payload, _options)
-      var payload = args.payload;
-      var options = args.options;
-      var type = args.type;
-
-      if (!options || !options.root) {
-        type = namespace + type
-        if (!store._actions[type]) {
-          console.error(("[vuex] unknown local action type: " + (args.type) + ", global type: " + type))
-          return
-        }
-      }
-
-      return store.dispatch(type, payload)
-    },
-
-    commit: noNamespace ? store.commit : function (_type, _payload, _options) {
-      var args = unifyObjectStyle(_type, _payload, _options)
-      var payload = args.payload;
-      var options = args.options;
-      var type = args.type;
-
-      if (!options || !options.root) {
-        type = namespace + type
-        if (!store._mutations[type]) {
-          console.error(("[vuex] unknown local mutation type: " + (args.type) + ", global type: " + type))
-          return
-        }
-      }
-
-      store.commit(type, payload, options)
-    }
-  }
-
-  // getters object must be gotten lazily
-  // because store.getters will be changed by vm update
-  Object.defineProperty(local, 'getters', {
-    get: noNamespace ? function () { return store.getters; } : function () { return makeLocalGetters(store, namespace); }
-  })
-
-  return local
-}
-
-function makeLocalGetters (store, namespace) {
-  var gettersProxy = {}
-
-  var splitPos = namespace.length
-  Object.keys(store.getters).forEach(function (type) {
-    // skip if the target getter is not match this namespace
-    if (type.slice(0, splitPos) !== namespace) { return }
-
-    // extract local getter type
-    var localType = type.slice(splitPos)
-
-    // Add a port to the getters proxy.
-    // Define as getter property because
-    // we do not want to evaluate the getters in this time.
-    Object.defineProperty(gettersProxy, localType, {
-      get: function () { return store.getters[type]; },
-      enumerable: true
-    })
-  })
-
-  return gettersProxy
-}
-
-function registerMutation (store, type, handler, path) {
-  var entry = store._mutations[type] || (store._mutations[type] = [])
-  entry.push(function wrappedMutationHandler (payload) {
-    handler(getNestedState(store.state, path), payload)
-  })
-}
-
-function registerAction (store, type, handler, local, path) {
-  var entry = store._actions[type] || (store._actions[type] = [])
-  entry.push(function wrappedActionHandler (payload, cb) {
-    var res = handler({
-      dispatch: local.dispatch,
-      commit: local.commit,
-      getters: local.getters,
-      state: getNestedState(store.state, path),
-      rootGetters: store.getters,
-      rootState: store.state
-    }, payload, cb)
-    if (!isPromise(res)) {
-      res = Promise.resolve(res)
-    }
-    if (store._devtoolHook) {
-      return res.catch(function (err) {
-        store._devtoolHook.emit('vuex:error', err)
-        throw err
-      })
-    } else {
-      return res
-    }
-  })
-}
-
-function registerGetter (store, type, rawGetter, local, path) {
-  if (store._wrappedGetters[type]) {
-    console.error(("[vuex] duplicate getter key: " + type))
-    return
-  }
-  store._wrappedGetters[type] = function wrappedGetter (store) {
-    return rawGetter(
-      getNestedState(store.state, path), // local state
-      local.getters, // local getters
-      store.state, // root state
-      store.getters // root getters
-    )
-  }
-}
-
-function enableStrictMode (store) {
-  store._vm.$watch('state', function () {
-    assert(store._committing, "Do not mutate vuex store state outside mutation handlers.")
-  }, { deep: true, sync: true })
-}
-
-function getNestedState (state, path) {
-  return path.length
-    ? path.reduce(function (state, key) { return state[key]; }, state)
-    : state
-}
-
-function unifyObjectStyle (type, payload, options) {
-  if (isObject(type) && type.type) {
-    options = payload
-    payload = type
-    type = type.type
-  }
-  return { type: type, payload: payload, options: options }
-}
-
-function install (_Vue) {
-  if (Vue) {
-    console.error(
-      '[vuex] already installed. Vue.use(Vuex) should be called only once.'
-    )
-    return
-  }
-  Vue = _Vue
-  applyMixin(Vue)
-}
-
-// auto install in dist mode
-if (typeof window !== 'undefined' && window.Vue) {
-  install(window.Vue)
-}
-
-var index = {
-  Store: Store,
-  install: install,
-  version: '2.1.1',
-  mapState: mapState,
-  mapMutations: mapMutations,
-  mapGetters: mapGetters,
-  mapActions: mapActions
-}
-
-return index;
-
-})));
-
-/***/ }),
-/* 53 */
+/* 88 */
 /***/ (function(module, exports) {
 
 module.exports = require("axios");
 
 /***/ }),
-/* 54 */
+/* 89 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__app__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__app__ = __webpack_require__(11);
 
 
 /* harmony default export */ __webpack_exports__["default"] = function (context) {
