@@ -4,7 +4,7 @@
     <h1 class="hxb-u-pdl-1 hxb-u-txt-center" v-if="!areTemplatesLoaded()">Loading...</h1>
     <h1 class="hxb-u-pdl-1" v-if="templates.length > 0">What would you like to organize today?</h1>
     <form v-on:submit="setTemplate" name="set_template" method="POST" action="/app/new-item-page-2" class="hxb-form" v-if="templates.length > 0">
-      <dropdown-field id="templates" label="Select a template" :options="templates"></dropdown-field>
+      <dropdown-field id="template" label="Select a template" :options="templates"></dropdown-field>
       <div class="hxb-form-field">
         <submit-button text="Save"></submit-button>
       </div>
@@ -15,23 +15,27 @@
 </template>
 
 <script>
+  import { mapGetters } from 'vuex'
   import AppFooter from '../AppFooter.vue'
   import AppHeader from '../AppHeader.vue'
   import DropdownField from '../DropdownField.vue'
   import SubmitButton from '../SubmitButton.vue'
   
   const fetchInitialData = store => {
-    return store.dispatch('getTemplates')
+    return store.dispatch('templates/getTemplates')
   }
   
   export default {
     name: 'new-item-page-1',
     prefetch: fetchInitialData,
     computed: {
+      ...mapGetters({
+        getTemplates: 'templates/getTemplates'
+      }),
       templates: function () {
         let i,
           template
-        let templates = this.$store.getters.getTemplates
+        let templates = this.getTemplates
         let templateList = []
       
         console.log(templates)
@@ -54,7 +58,21 @@
         return Array.isArray(this.templates)
       },
       setTemplate: function (e) {
+        let i,
+          template
+        let templateId = this.$store.state.form.fields['template']
         e.preventDefault()
+
+        console.log(this.$store.state.form.fields)
+        console.log(templateId)
+        for (i = 0; i < this.templates.length; i++) {
+          if (this.templates[i].id === templateId) {
+            template = this.templates[i]
+          }
+        }
+
+        this.$store.dispatch('templates/setTemplate', template)
+        this.$router.push('/app/new-item-page-2')
       }
     },
     components: {

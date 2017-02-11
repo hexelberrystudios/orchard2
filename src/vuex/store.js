@@ -4,12 +4,12 @@ import * as actions from './actions'
 import * as getters from './getters'
 import form from './modules/form'
 import fields from './modules/fields'
+import templates from './modules/templates'
 
 Vue.use(Vuex)
 
 const defaultState = {
   topics: [],
-  templates: [],
   count: 0
 }
 
@@ -21,14 +21,6 @@ const state = (inBrowser && window.__INITIAL_STATE__) || defaultState
 const mutations = {
   TOPICS_LIST: (state, topics) => {
     state.topics = topics
-  },
-  
-  TEMPLATE_LIST: (state, templates) => {
-    state.templates = templates
-  },
-  
-  ACTIVE_TEMPLATE: (state, template) => {
-    state.activeTemplate = template
   },
 
   INCREMENT: (state) => {
@@ -47,6 +39,7 @@ export default new Vuex.Store({
   getters,
   modules: {
     form,
-    fields
+    fields,
+    templates
   }
 })
