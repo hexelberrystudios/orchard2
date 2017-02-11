@@ -3,7 +3,7 @@
     <app-header></app-header>
     <h1 class="hxb-u-pdl-1 hxb-u-txt-center" v-if="!areTemplatesLoaded()">Loading...</h1>
     <h1 class="hxb-u-pdl-1" v-if="templates.length > 0">What would you like to organize today?</h1>
-    <form name="set_template" method="GET" action="/app/new-item-page-2" class="hxb-form" v-if="templates.length > 0">
+    <form v-on:submit="setTemplate" name="set_template" method="POST" action="/app/new-item-page-2" class="hxb-form" v-if="templates.length > 0">
       <dropdown-field id="templates" label="Select a template" :options="templates"></dropdown-field>
       <div class="hxb-form-field">
         <submit-button text="Save"></submit-button>
@@ -15,7 +15,6 @@
 </template>
 
 <script>
-  import { mapGetters } from 'vuex'
   import AppFooter from '../AppFooter.vue'
   import AppHeader from '../AppHeader.vue'
   import DropdownField from '../DropdownField.vue'
@@ -29,9 +28,23 @@
     name: 'new-item-page-1',
     prefetch: fetchInitialData,
     computed: {
-      ...mapGetters({
-        templates: 'getTemplates'
-      })
+      templates: function () {
+        let i,
+          template
+        let templates = this.$store.getters.getTemplates
+        let templateList = []
+      
+        console.log(templates)
+        for (i = 0; i < templates.length; i++) {
+          template = templates[i]
+          templateList.push({
+            label: template.templateName,
+            value: template.id
+          })
+        }
+
+        return templateList
+      }
     },
     mounted () {
       fetchInitialData(this.$store)
@@ -39,6 +52,9 @@
     methods: {
       areTemplatesLoaded: function () {
         return Array.isArray(this.templates)
+      },
+      setTemplate: function (e) {
+        e.preventDefault()
       }
     },
     components: {

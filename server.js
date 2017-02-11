@@ -43,7 +43,7 @@ server.register(require('inert'), function (error) {
 
   server.route({
     method: 'GET',
-    path: '/static/{file*}',
+    path: '/public/{file*}',
     handler: {
       directory: {
         path: 'public',

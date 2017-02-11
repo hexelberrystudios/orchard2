@@ -39,6 +39,7 @@
           idx;
         let fields = [];
         let form = this.$store.state.form.fields;
+        let self = this;
 
         e.preventDefault();
         // iterate through fields
@@ -69,6 +70,8 @@
               templateName: name,
               fields: fields
             });
+            // redirect to the home page when finished
+            self.$router.push('/app/home');
           } else {
             throw new Error('User is not currently signed in.');
           }

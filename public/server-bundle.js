@@ -8741,13 +8741,13 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     return {
       objects: [{
         label: 'Item',
-        link: '/new-item'
+        link: '/app/new-item'
       }, {
         label: 'Template',
-        link: '/new-template'
+        link: '/app/new-template'
       }, {
         label: 'Bundle',
-        link: '/new-bundle'
+        link: '/app/new-bundle'
       }],
       isIndented: true
     };
@@ -9709,19 +9709,19 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     staticClass: "hxb-footer-list__action"
   }, [_c('router-link', {
     attrs: {
-      "to": "/todo"
+      "to": "/app/todo"
     }
   }, [_vm._v("To Do")])], 1), _vm._v(" "), _c('li', {
     staticClass: "hxb-footer-list__action"
   }, [_c('router-link', {
     attrs: {
-      "to": "/search"
+      "to": "/app/search"
     }
   }, [_vm._v("Search")])], 1), _vm._v(" "), _c('li', {
     staticClass: "hxb-footer-list__action"
   }, [_c('router-link', {
     attrs: {
-      "to": "/new"
+      "to": "/app/new"
     }
   }, [_vm._v("New")])], 1)])])
 },staticRenderFns: []}
@@ -9794,7 +9794,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     attrs: {
       "name": "login",
       "method": "post",
-      "action": "/login"
+      "action": "/app/login"
     }
   }, [_c('text-field', {
     attrs: {
@@ -9816,7 +9816,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     }
   }), _vm._v(" "), _c('router-link', {
     attrs: {
-      "to": "/register",
+      "to": "/app/register",
       "exact": ""
     }
   }, [_vm._v("or Register")])], 1)
@@ -9880,7 +9880,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     attrs: {
       "name": "set_template",
       "method": "GET",
-      "action": "/new-item-page-2"
+      "action": "/app/new-item-page-2"
     }
   }, [_c('dropdown-field', {
     attrs: {
@@ -9911,7 +9911,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     attrs: {
       "name": "new_item",
       "method": "POST",
-      "action": "/new-item"
+      "action": "/app/new-item"
     },
     on: {
       "submit": _vm.addItem
@@ -9944,7 +9944,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     attrs: {
       "name": "new-template",
       "method": "POST",
-      "action": "/new-template"
+      "action": "/app/new-template"
     },
     on: {
       "submit": _vm.addTemplate
