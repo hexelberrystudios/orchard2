@@ -4,7 +4,7 @@
     <h1 class="hxb-u-pdl-1 hxb-u-txt-center" v-if="!areTemplatesLoaded()">Loading...</h1>
     <h1 class="hxb-u-pdl-1" v-if="templates.length > 0">What would you like to organize today?</h1>
     <form v-on:submit="setTemplate" name="set_template" method="POST" action="/app/new-item-page-2" class="hxb-form" v-if="templates.length > 0">
-      <dropdown-field id="template" label="Select a template" :options="templates"></dropdown-field>
+      <dropdown-field id="template" label="Select a template" :options="templateOptions"></dropdown-field>
       <div class="hxb-form-field">
         <submit-button text="Save"></submit-button>
       </div>
@@ -30,15 +30,17 @@
     prefetch: fetchInitialData,
     computed: {
       ...mapGetters({
-        getTemplates: 'templates/getTemplates'
+        templates: 'templates/getTemplates'
       }),
-      templates: function () {
+      templateOptions: function () {
         let i,
           template
-        let templates = this.getTemplates
-        let templateList = []
-      
-        console.log(templates)
+        let templates = this.templates
+        let templateList = [{
+          label: '-- please select one --',
+          value: ''
+        }]
+        
         for (i = 0; i < templates.length; i++) {
           template = templates[i]
           templateList.push({
@@ -50,24 +52,27 @@
         return templateList
       }
     },
+    created () {
+      this.$store.dispatch('form/resetForm')
+    },
     mounted () {
       fetchInitialData(this.$store)
     },
     methods: {
       areTemplatesLoaded: function () {
-        return Array.isArray(this.templates)
+        return Array.isArray(this.templateOptions)
       },
       setTemplate: function (e) {
         let i,
           template
         let templateId = this.$store.state.form.fields['template']
+        
         e.preventDefault()
-
-        console.log(this.$store.state.form.fields)
-        console.log(templateId)
+        
         for (i = 0; i < this.templates.length; i++) {
           if (this.templates[i].id === templateId) {
             template = this.templates[i]
+            break
           }
         }
 

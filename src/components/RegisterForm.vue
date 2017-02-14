@@ -18,6 +18,9 @@
   
   export default {
     name: 'register-form',
+    created () {
+      this.$store.dispatch('form/resetForm')
+    },
     methods: {
       register: function (e) {
         let self = this;

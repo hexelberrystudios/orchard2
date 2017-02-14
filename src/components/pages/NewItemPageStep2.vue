@@ -1,7 +1,7 @@
 <template>
   <div>
     <app-header></app-header>
-    <h1 class="hxb-u-pdl-1" v-if="template">Time to add a new {{ template.name }}!</h1>
+    <h1 class="hxb-u-pdl-1" v-if="template">Time to add a new {{ template.templateName }}!</h1>
     <form v-on:submit="addItem" name="new_item" method="POST" action="/app/new-item" class="hxb-form">
       <text-field id="name" label="Name"></text-field>
       <template v-for="field in template.fields">
@@ -19,6 +19,7 @@
   import { mapGetters } from 'vuex'
   import AppFooter from '../AppFooter.vue'
   import AppHeader from '../AppHeader.vue'
+  import TextField from '../TextField.vue'
   import SubmitButton from '../SubmitButton.vue'
   
   // @TODO: Get this to work without javascript,
@@ -28,7 +29,7 @@
     name: 'new-item-page-2',
     computed: {
       ...mapGetters({
-        template: 'templates/getTemplate'
+        template: 'templates/getActiveTemplate'
       })
     },
     methods: {
@@ -47,6 +48,7 @@
     components: {
       AppHeader,
       AppFooter,
+      TextField,
       SubmitButton
     }
   }
