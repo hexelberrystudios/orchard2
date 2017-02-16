@@ -37,15 +37,15 @@
           },
           {
             label: 'Text Field',
-            value: 'text-field'
+            value: 'TextField'
           },
           {
             label: 'Large Text Field',
-            value: 'text-area-field'
+            value: 'TextAreaField'
           },
           {
             label: 'Completable',
-            value: 'checkbox-field'
+            value: 'CheckboxField'
           }
         ]
       };

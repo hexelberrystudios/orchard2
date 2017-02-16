@@ -19,6 +19,7 @@ const templateModule = {
     },
     // set current template
     ACTIVE_TEMPLATE: (state, template) => {
+      console.log(template)
       state.activeTemplate = template
     }
   },
