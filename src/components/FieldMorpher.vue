@@ -1,5 +1,5 @@
 <template>
-  <component v-bind:is="field.field_type" v-bind:id="fieldId" v-bind:label="field.field_label"></component>
+  <component v-bind:is="field.fieldType" v-bind:id="fieldId" v-bind:label="field.fieldLabel"></component>
 </template>
 
 <script>

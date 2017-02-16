@@ -2,10 +2,8 @@ import utils from '../utils.js'
 
 const templateModule = {
   // namespace this module so that it doesn't collide with other store behavior
-  namespaced: true, // -> getters['fields/*']
+  namespaced: true, // -> getters['templates/*']
   // default values
-  // fields are represented as an array of empty objects since the data gets managed in the
-  // form store, but we need to keep track of an ordered list of objects we can remove in the future
   state: { templates: [{}], activeTemplate: {} },
   getters: {
     getTemplates: state => state.templates,

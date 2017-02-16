@@ -33,15 +33,33 @@
     },
     methods: {
       addItem: function (e) {
-        /*
+        let i;
+        let self = this;
+        let form = this.$store.state.form.fields;
+        let templateFields = this.template.fields;
+        
+        e.preventDefault();
+        console.log(form);
+        
+        // convert the template into an item, so that all template data
+        // is localized, and changes to the template will not affect items
+        // unless an explicit update is made
+        for (i = 0; i < templateFields.length; i++) {
+          templateFields[i].value = form['field_' + i];
+        }
+        
+        this.template.isItem = true;
+        
         hoodie.ready.then(function () {
           if (hoodie.account.isSignedIn()) {
-            hoodie.store.add({})
+            console.log(self.template);
+            hoodie.store.add(self.template);
+            // redirect to the home page when finished
+            self.$router.push('/app/home');
           } else {
             throw new Error('User is not currently signed in.');
           }
         });
-        */
       }
     },
     components: {

@@ -17,9 +17,9 @@
     name: 'field-card',
     data: function () {
       return {
-        fieldLabel: 'field_label_' + this.fieldIndex,
-        fieldType: 'field_type_' + this.fieldIndex,
-        showInPreview: 'show_in_preview_' + this.fieldIndex,
+        fieldLabel: 'fieldLabel_' + this.fieldIndex,
+        fieldType: 'fieldType_' + this.fieldIndex,
+        showInPreview: 'showInPreview_' + this.fieldIndex,
         radioButtonOptions: [
           {
             label: 'No',

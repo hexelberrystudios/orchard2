@@ -49,6 +49,10 @@ hoodie.store.findAll()
     // do your thing
   })
 
+## Architectural Notes
+
+"value" is a reserved property on fields. Do not create a field with a value property, since that's the property that gets used when assigning a value to the field.
+
 ## @TODO:
 
 - Update all form elements to use vuex

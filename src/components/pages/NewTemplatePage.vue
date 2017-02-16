@@ -27,6 +27,9 @@
   
   export default {
     name: 'new-template-page',
+    created () {
+      this.$store.dispatch('form/resetForm')
+    },
     computed: {
       ...mapGetters({
         fields: 'fields/getFields'
