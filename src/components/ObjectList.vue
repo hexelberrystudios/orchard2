@@ -1,6 +1,6 @@
 <template>
   <ul class="hxb-object-list" v-bind:class="{ 'is-indented': isIndented }">
-    <li v-for="object in objects" class="hxb-object-list-item">
+    <li v-for="object in objects" class="hxb-object-list-item" v-if="object.link && object.label">
       <router-link :to="object.link" class="hxb-object-list-item__link">
         <span>{{ object.label }}</span>
         <span class="hxb-object-list-item__arrow">&#8674;</span>

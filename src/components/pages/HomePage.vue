@@ -15,8 +15,6 @@
   
   export default {
     name: 'home-page',
-    // List the components used on this page. This is using ES2015 syntax,
-    // where PrimaryButton is the same as 'PrimaryButton': PrimaryButton
     components: {
       AppFooter,
       AppHeader,
