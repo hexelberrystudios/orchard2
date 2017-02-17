@@ -1,9 +1,9 @@
 <template>
-  <component v-bind:is="field.fieldType" v-bind:id="fieldId" v-bind:label="field.fieldLabel"></component>
+  <component v-bind:is="'Display' + field.fieldType" v-bind:value="field.value"></component>
 </template>
 
 <script>
-  import TextField from './TextField.vue'
+  import DisplayTextField from './DisplayTextField.vue'
   
   /**
    * This component will morph into the given field.
@@ -11,18 +11,15 @@
    * so the properties can be properly bound.
    */
   export default {
+    name: 'display-field-morpher',
     props: {
       field: {
         type: Object,
         required: true
-      },
-      fieldId: {
-        type: String,
-        required: true
       }
     },
     components: {
-      TextField
+      DisplayTextField
     }
   }
 </script>

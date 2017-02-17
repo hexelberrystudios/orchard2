@@ -18,7 +18,7 @@
   import { mapGetters } from 'vuex'
   import AppFooter from '../AppFooter.vue'
   import AppHeader from '../AppHeader.vue'
-  import DropdownField from '../DropdownField.vue'
+  import DropdownField from '../fields/edit/DropdownField.vue'
   import SubmitButton from '../SubmitButton.vue'
   
   const fetchInitialData = store => {

@@ -13,7 +13,7 @@
 </template>
 
 <script>
-  import TextField from './TextField.vue'
+  import TextField from './fields/edit/TextField.vue'
   import SubmitButton from './SubmitButton.vue'
   
   export default {

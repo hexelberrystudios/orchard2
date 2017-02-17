@@ -8,10 +8,10 @@
 </template>
 
 <script>
-  import RemoveButton from './RemoveButton.vue'
-  import TextField from './TextField.vue'
-  import DropdownField from './DropdownField.vue'
-  import RadioButtonField from './RadioButtonField.vue'
+  import RemoveButton from '../RemoveButton.vue'
+  import TextField from './edit/TextField.vue'
+  import DropdownField from './edit/DropdownField.vue'
+  import RadioButtonField from './edit/RadioButtonField.vue'
 
   export default {
     name: 'field-card',

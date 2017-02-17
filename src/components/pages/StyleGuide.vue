@@ -200,16 +200,16 @@
 </template>
 
 <script>
-  import CheckboxField from '../CheckboxField.vue'
+  import CheckboxField from '../fields/edit/CheckboxField.vue'
   import ChoiceList from '../ChoiceList.vue'
-  import DropdownField from '../DropdownField.vue'
+  import DropdownField from '../fields/edit/DropdownField.vue'
   import ObjectList from '../ObjectList.vue'
   import PrimaryButton from '../PrimaryButton.vue'
-  import RadioButtonField from '../RadioButtonField.vue'
+  import RadioButtonField from '../fields/edit/RadioButtonField.vue'
   import SubmitButton from '../SubmitButton.vue'
-  import TextAreaField from '../TextAreaField.vue'
-  import TextField from '../TextField.vue'
-  import FieldCard from '../FieldCard.vue'
+  import TextAreaField from '../fields/edit/TextAreaField.vue'
+  import TextField from '../fields/edit/TextField.vue'
+  import FieldCard from '../fields/FieldCard.vue'
   import AddItemButton from '../AddItemButton.vue'
 
   if (typeof document !== 'undefined') {

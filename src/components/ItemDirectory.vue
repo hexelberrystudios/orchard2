@@ -1,10 +1,12 @@
 <template>
-  <object-list :objects="items"></object-list>
+  <template v-for="item in items">
+    <display-item :item="item"></display-item>
+  </template>
 </template>
 
 <script>
   import { mapGetters } from 'vuex'
-  import ObjectList from './ObjectList.vue'
+  import DisplayItem from './DisplayItem.vue'
   
   /**
    * Shows a list of items and bundles for the current bundle directory.
@@ -29,7 +31,7 @@
       fetchInitialData(this.$store)
     },
     components: {
-      ObjectList
+      DisplayItem
     },
     props: {
       path: {

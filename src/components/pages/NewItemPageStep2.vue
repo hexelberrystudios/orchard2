@@ -19,7 +19,7 @@
   import AppFooter from '../AppFooter.vue'
   import AppHeader from '../AppHeader.vue'
   import SubmitButton from '../SubmitButton.vue'
-  import FieldMorpher from '../FieldMorpher.vue'
+  import FieldMorpher from '../fields/edit/FieldMorpher.vue'
   
   // @TODO: Get this to work without javascript,
   // and get this to work with reloading the page

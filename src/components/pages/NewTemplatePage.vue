@@ -20,9 +20,9 @@
   import { mapGetters } from 'vuex'
   import AppFooter from '../AppFooter.vue'
   import AppHeader from '../AppHeader.vue'
-  import FieldCard from '../FieldCard.vue'
+  import FieldCard from '../fields/FieldCard.vue'
   import AddItemButton from '../AddItemButton.vue'
-  import TextField from '../TextField.vue'
+  import TextField from '../fields/edit/TextField.vue'
   import SubmitButton from '../SubmitButton.vue'
   
   export default {
