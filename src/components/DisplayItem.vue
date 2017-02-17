@@ -1,7 +1,11 @@
 <template>
-  <template v-for="field in item.fields">
-    <display-field-morpher :field="field"></display-field-morpher>
-  </template>
+  <section class="hxb-object-list-item">
+    <template v-for="field in item.fields">
+      <router-link :to="itemPath + item.id" class="hxb-object-list-item__link">
+        <display-field-morpher :field="field"></display-field-morpher>
+      </router-link>
+    </template>
+  </section>
 </template>
 
 <script>
@@ -9,6 +13,11 @@
   
   export default {
     name: 'display-item',
+    data: function () {
+      return {
+        itemPath: '/app/item/'
+      }
+    },
     components: {
       DisplayFieldMorpher
     },

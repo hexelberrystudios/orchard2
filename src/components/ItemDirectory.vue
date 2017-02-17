@@ -1,7 +1,9 @@
 <template>
-  <template v-for="item in items">
-    <display-item :item="item"></display-item>
-  </template>
+  <article class="hxb-object-list">
+    <template v-for="item in items">
+      <display-item :item="item"></display-item>
+    </template>
+  </article>
 </template>
 
 <script>

@@ -1,9 +1,7 @@
 <template>
   <div>
     <app-header></app-header>
-    <article>
-      <item-directory path="/"></item-directory>
-    </article>
+    <item-directory path="/"></item-directory>
     <app-footer></app-footer>
   </div>
 </template>
