@@ -45,7 +45,27 @@ const itemModule = {
               
       return utils.runHoodieFn(commit, state, findAllItems)
     },
-    /* @TODO: getItem */
+    getItem: ({ commit, state }, id) => {
+      console.log('getting item')
+      console.log(id)
+      const findItem = function (resolve, reject) {
+        // look through the DB for all the items
+        hoodie.store.find(id)
+          .then((itemDoc) => {
+            console.log('found item')
+            console.log(itemDoc)
+            // update the store with the list of available items
+            commit('ACTIVE_ITEM', itemDoc)
+            resolve(itemDoc)
+          })
+          .catch((error) => {
+            console.log(error)
+            reject(error)
+          })
+      }
+      
+      return utils.runHoodieFn(commit, state, findItem)
+    },
     setItem: ({ commit, state }, item) => {
       commit('ACTIVE_ITEM', item)
     }

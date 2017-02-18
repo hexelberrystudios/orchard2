@@ -1,6 +1,6 @@
 <template>
   <section class="hxb-object-list-item">
-    <template v-for="field in item.fields">
+    <template v-for="field in item.fields" v-if="field.showInPreview">
       <router-link :to="itemPath + item.id" class="hxb-object-list-item__link">
         <display-field-morpher :field="field"></display-field-morpher>
       </router-link>
