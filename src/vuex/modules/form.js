@@ -7,7 +7,7 @@ const formModule = {
   mutations: {
     // add/update form field to current form
     UPDATE_FIELD: (state, field) => {
-      state.fields[field.name] = field.value;
+      state.fields[field.name] = field.value
     },
     REMOVE_FIELD: (state, field) => {
       delete state.fields[field.name];

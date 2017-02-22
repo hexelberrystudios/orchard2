@@ -38,7 +38,7 @@
     computed: {
       // get the latest value of this form field from the vuex store
       ...mapState({
-        value: state => state.form.fields[this.id]
+        value: function (state) { console.log('TEXT FIELD'); return state.form.fields[this.id]; }
       })
     },
     // define the props that can be passed in, to differentiate local variables versus arguments I guess

@@ -18,14 +18,6 @@
   import AppHeader from '../AppHeader.vue'
   import DisplayFieldMorpher from '../fields/display/DisplayFieldMorpher.vue'
   
-  const fetchInitialData = store => {
-    // @TODO: window not found and $route not found, so how do I get the item id???
-    // let url = window.location.pathname
-    // let itemId = url.substr(url.lastIndexOf('/') + 1)
-    
-    return store.dispatch('items/getItem', this.$route.params.itemId)
-  }
-  
   export default {
     name: 'item-page',
     data: function () {
@@ -34,7 +26,9 @@
         itemId: this.$route.params.itemId
       }
     },
-    prefetch: fetchInitialData,
+    mounted: function () {
+      this.$store.dispatch('items/getItem', this.$route.params.itemId)
+    },
     computed: {
       ...mapGetters({
         item: 'items/getActiveItem'

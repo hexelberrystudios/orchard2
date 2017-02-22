@@ -23,10 +23,6 @@
   import FieldMorpher from '../fields/edit/FieldMorpher.vue'
   import SubmitButton from '../SubmitButton.vue'
   
-  const fetchInitialData = store => {
-    return store.dispatch('items/getItem')
-  }
-  
   export default {
     name: 'edit-item-page',
     data: function () {
@@ -35,13 +31,40 @@
         itemId: this.$route.params.itemId
       }
     },
-    prefetch: fetchInitialData,
+    created () {
+      this.$store.dispatch('form/resetForm')
+    },
+    mounted: function () {
+      let self = this
+      // load item to be edited
+      this.$store.dispatch('items/getItem', this.$route.params.itemId).then(function () {
+        // fill form fields with item's stored field values
+        setTimeout(function () {
+          self.loadForm()
+        }, 2000)
+      })
+    },
     computed: {
       ...mapGetters({
         item: 'items/getActiveItem'
       })
     },
     methods: {
+      loadForm: function () {
+        let i,
+          field
+        const fields = this.item.fields
+        
+        console.log('Loading form...')
+        for (i = 0; i < fields.length; i++) {
+          field = fields[i]
+          if (field.hasOwnProperty('value')) {
+            field.name = 'field_' + i
+            this.$store.dispatch('form/updateField', field)
+          }
+        }
+        console.log(fields)
+      },
       editItem: function (e) {
         let i,
           field;
