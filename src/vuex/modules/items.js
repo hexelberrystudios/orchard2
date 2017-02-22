@@ -31,8 +31,6 @@ const itemModule = {
             return docs.filter(doc => doc.isItem) // only include docs where isItem is true
           })
           .then((itemDocs) => {
-            console.log('done loading items')
-            console.log(itemDocs)
             // update the store with the list of available items
             commit('ITEM_LIST', itemDocs)
             resolve(itemDocs)
@@ -46,14 +44,10 @@ const itemModule = {
       return utils.runHoodieFn(commit, state, findAllItems)
     },
     getItem: ({ commit, state }, id) => {
-      console.log('getting item')
-      console.log(id)
       const findItem = function (resolve, reject) {
         // look through the DB for all the items
         hoodie.store.find(id)
           .then((itemDoc) => {
-            console.log('found item')
-            console.log(itemDoc)
             // update the store with the list of available items
             commit('ACTIVE_ITEM', itemDoc)
             resolve(itemDoc)

@@ -1,3 +1,5 @@
+import Vue from 'vue'
+
 const formModule = {
   // namespace this module so that it doesn't collide with other store behavior
   namespaced: true, // -> getters['form/*']
@@ -7,7 +9,9 @@ const formModule = {
   mutations: {
     // add/update form field to current form
     UPDATE_FIELD: (state, field) => {
-      state.fields[field.name] = field.value
+      // when updating properties in objects, use Vue.set to let
+      // Vue know that the object has been updated
+      Vue.set(state.fields, field.name, field.value)
     },
     REMOVE_FIELD: (state, field) => {
       delete state.fields[field.name];

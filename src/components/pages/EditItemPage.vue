@@ -39,9 +39,7 @@
       // load item to be edited
       this.$store.dispatch('items/getItem', this.$route.params.itemId).then(function () {
         // fill form fields with item's stored field values
-        setTimeout(function () {
-          self.loadForm()
-        }, 2000)
+        self.loadForm()
       })
     },
     computed: {
@@ -55,7 +53,6 @@
           field
         const fields = this.item.fields
         
-        console.log('Loading form...')
         for (i = 0; i < fields.length; i++) {
           field = fields[i]
           if (field.hasOwnProperty('value')) {
@@ -63,7 +60,6 @@
             this.$store.dispatch('form/updateField', field)
           }
         }
-        console.log(fields)
       },
       editItem: function (e) {
         let i,
