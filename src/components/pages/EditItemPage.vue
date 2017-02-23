@@ -64,12 +64,11 @@
       editItem: function (e) {
         let i,
           field;
-        // let self = this;
+        let self = this;
         let form = this.$store.state.form.fields;
         let itemFields = this.item.fields;
         
         e.preventDefault();
-        console.log(form);
         
         for (i = 0; i < itemFields.length; i++) {
           field = form['field_' + i];
@@ -79,11 +78,9 @@
             itemFields[i].value = field;
           }
         }
-        // https://hoodiehq.github.io/pouchdb-hoodie-api/index.html
-        /*
+        
         hoodie.ready.then(function () {
           if (hoodie.account.isSignedIn()) {
-            console.log(self.item);
             hoodie.store.update(self.item);
             // redirect to the home page when finished
             self.$router.push('/app/home');
@@ -91,7 +88,6 @@
             throw new Error('User is not currently signed in.');
           }
         });
-        */
       }
     },
     components: {
