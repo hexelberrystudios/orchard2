@@ -28,9 +28,12 @@ const itemModule = {
         // look through the DB for all the items
         hoodie.store.findAll()
           .then((docs) => {
+            console.log(docs)
             return docs.filter(doc => doc.isItem) // only include docs where isItem is true
           })
           .then((itemDocs) => {
+            console.log('ITEMS FOUND:')
+            console.log(itemDocs)
             // update the store with the list of available items
             commit('ITEM_LIST', itemDocs)
             resolve(itemDocs)

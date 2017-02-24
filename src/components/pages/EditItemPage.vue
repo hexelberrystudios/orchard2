@@ -1,7 +1,7 @@
 <template>
   <div>
     <app-header></app-header>
-    <article>
+    <article class="hxb-u-pd-1">
       <router-link :to="itemPath + item.id">Back</router-link>
       <form v-on:submit="editItem" name="edit_item" method="POST" action="/app/edit-item" class="hxb-form">
         <template v-for="(field, index) in item.fields">

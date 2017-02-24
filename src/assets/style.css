@@ -343,6 +343,14 @@ a:visited {
   margin-left: 0.5rem;
 }
 
+.hxb-u-pd-1 {
+  padding: 1rem;
+}
+
 .hxb-u-pdl-1 {
   padding-left: 1rem;
+}
+
+.hxb-u-float-r {
+  float: right;
 }
