@@ -28,7 +28,7 @@ const templateModule = {
         // look through the DB for all the templates
         hoodie.store.findAll()
           .then((docs) => {
-            return docs.filter(doc => doc.templateName) // filter out docs that have no templateName field
+            return docs.filter(function (doc) { return doc.templateName && !doc.isItem }) // filter out docs that have no templateName field
           })
           .then((templateDocs) => {
             console.log('done loading templates')
@@ -45,15 +45,12 @@ const templateModule = {
               
       return utils.runHoodieFn(commit, state, findAllTemplates)
     },
-    /*
-    getTemplate: ({ commit, state }, templateId) => {
+    getTemplate: ({ commit, state }, id) => {
       const findTemplate = function (resolve, reject) {
-        console.log('Template ID: ' + templateId)
-        // look through the DB for all the templates
-        hoodie.store.find(templateId)
+        // look through the DB for all the items
+        hoodie.store.find(id)
           .then((templateDoc) => {
-            console.log('done loading template')
-            // update the store with the list of available templates
+            // update the store with the list of available items
             commit('ACTIVE_TEMPLATE', templateDoc)
             resolve(templateDoc)
           })
@@ -62,10 +59,9 @@ const templateModule = {
             reject(error)
           })
       }
-          
+      
       return utils.runHoodieFn(commit, state, findTemplate)
     },
-    */
     setTemplate: ({ commit, state }, template) => {
       commit('ACTIVE_TEMPLATE', template)
     }

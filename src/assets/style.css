@@ -295,18 +295,20 @@ a:visited {
   /* position: fixed; */
   bottom: 0;
   width: 100%;
-  padding: 0.25rem;
+  padding: 0.25rem 0;
 }
 
 .hxb-footer-list {
   list-style: none;
   margin: 0;
+  padding: 0;
 }
 
 .hxb-footer-list__action {
   display: inline-block;
-  width: 32%;
+  width: 24.7%;
   text-align: center;
+  padding: 0;
 }
 
 .hxb-footer-list__action > a {
