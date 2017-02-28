@@ -58,7 +58,7 @@ hoodie.store.findAll()
 
 - ** move server framework to Nuxt (https://nuxtjs.org/) **
 - Generate uuid on the client/server for new hoodie items
+- Potential future problem: Components have to know how ID naming scheme across components. Use a different approach.
 
 ## Bugs:
 
-- Dropdown on new item page not updating correctly

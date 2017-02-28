@@ -45,17 +45,30 @@
         const fields = this.template.fields
         
         this.$store.dispatch('form/updateField', {
-          name: 'field_0',
+          name: 'name',
           value: this.template.templateName
         })
         
-        for (i = 1; i < fields.length; i++) {
+        console.log(this.template)
+        for (i = 0; i < fields.length; i++) {
           field = fields[i]
-          if (field.hasOwnProperty('value')) {
-            field.name = 'field_' + i
-            this.$store.dispatch('form/updateField', field)
-          }
+          
+          field.name = 'field_' + i
+          this.$store.dispatch('form/updateField', {
+            name: 'fieldLabel_' + i,
+            value: field.fieldLabel
+          })
+          this.$store.dispatch('form/updateField', {
+            name: 'fieldType_' + i,
+            value: field.fieldType
+          })
+          this.$store.dispatch('form/updateField', {
+            name: 'showInPreview_' + i,
+            value: field.showInPreview
+          })
         }
+        
+        console.log(this.$store.state.form.fields)
       },
       editTemplate: function (e) {
         let name,
