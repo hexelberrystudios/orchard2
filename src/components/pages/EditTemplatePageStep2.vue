@@ -2,6 +2,12 @@
   <div>
     <app-header></app-header>
     <h1 class="hxb-u-pdl-1">You're editing your {{ template.templateName }} template:</h1>
+    <div class="hxb-u-pd-1">
+      <form v-on:submit="deleteTemplate" name="delete_template" method="DELETE" :action="'/app/template/' + template.id">
+        <input type="hidden" name="templateId" :value="template.id" />
+        <submit-button text="Delete"></submit-button>
+      </form>
+    </div>
     <form v-on:submit="editTemplate" name="edit-template" method="POST" action="/app/edit-template" class="hxb-form">
       <text-field id="name" label="Name"></text-field>
       <template v-for="(field, index) in template.fields">
@@ -116,6 +122,21 @@
       removeField: function (fieldIndex) {
         console.log('Calling removeField in NewItemPage on index ' + fieldIndex);
         this.$store.dispatch('fields/removeField', fieldIndex);
+      },
+      deleteTemplate: function (e) {
+        let self = this;
+        
+        e.preventDefault();
+        
+        hoodie.ready.then(function () {
+          if (hoodie.account.isSignedIn()) {
+            hoodie.store.remove(self.template.id);
+            // redirect to the home page when finished
+            self.$router.push('/app/home');
+          } else {
+            throw new Error('User is not currently signed in.');
+          }
+        });
       }
     },
     components: {
