@@ -4,6 +4,7 @@
 
 <script>
   import DisplayTextField from './DisplayTextField.vue'
+  import DisplayTextAreaField from './DisplayTextAreaField.vue'
   
   /**
    * This component will morph into the given field.
@@ -19,7 +20,8 @@
       }
     },
     components: {
-      DisplayTextField
+      DisplayTextField,
+      DisplayTextAreaField
     }
   }
 </script>
