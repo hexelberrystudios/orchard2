@@ -21,7 +21,7 @@ const fieldListModule = {
       if (typeof fieldIndex !== 'undefined') {
         console.log('Removing index ' + fieldIndex);
         console.log(state.fields);
-        state.fields = state.fields.splice(fieldIndex, 1);
+        state.fields.splice(fieldIndex, 1);
         console.log(state.fields);
       } else {
         throw new Error('fieldIndex undefined in fields/removeField');
@@ -32,7 +32,7 @@ const fieldListModule = {
   actions: {
     addField ({ commit }, field) { commit('ADD_FIELD', field) },
     updateField ({ commit }, field) { commit('UPDATE_FIELD', field) },
-    removeField ({ commit }) { commit('REMOVE_FIELD') }
+    removeField ({ commit }, fieldIndex) { commit('REMOVE_FIELD', fieldIndex) }
   }
 }
 

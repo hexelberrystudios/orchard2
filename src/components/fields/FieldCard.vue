@@ -44,6 +44,10 @@
             value: 'TextAreaField'
           },
           {
+            label: 'Date',
+            value: 'DateField'
+          },
+          {
             label: 'Completable',
             value: 'CheckboxField'
           }

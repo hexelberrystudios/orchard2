@@ -62,3 +62,4 @@ hoodie.store.findAll()
 
 ## Bugs:
 
+- Add field in edit template does not work

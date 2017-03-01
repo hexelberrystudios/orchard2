@@ -10,7 +10,7 @@
     </div>
     <form v-on:submit="editTemplate" name="edit-template" method="POST" action="/app/edit-template" class="hxb-form">
       <text-field id="name" label="Name"></text-field>
-      <template v-for="(field, index) in template.fields">
+      <template v-for="(field, index) in fields">
         <field-card :fieldIndex="index" :removeField="removeField"></field-card>
       </template>
       <add-item-button></add-item-button>
@@ -41,7 +41,8 @@
     },
     computed: {
       ...mapGetters({
-        template: 'templates/getActiveTemplate'
+        template: 'templates/getActiveTemplate',
+        fields: 'fields/getFields'
       })
     },
     methods: {
@@ -72,6 +73,10 @@
             name: 'showInPreview_' + i,
             value: field.showInPreview
           })
+          
+          if (i !== 0) {
+            this.$store.dispatch('fields/addField')
+          }
         }
         
         console.log(this.$store.state.form.fields)
@@ -120,7 +125,7 @@
         });
       },
       removeField: function (fieldIndex) {
-        console.log('Calling removeField in NewItemPage on index ' + fieldIndex);
+        console.log('Calling removeField in EditTemplatePage on index ' + fieldIndex);
         this.$store.dispatch('fields/removeField', fieldIndex);
       },
       deleteTemplate: function (e) {
