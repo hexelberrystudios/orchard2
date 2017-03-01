@@ -61,5 +61,3 @@ hoodie.store.findAll()
 - Potential future problem: Components have to know how ID naming scheme across components. Use a different approach.
 
 ## Bugs:
-
-- Add field in edit template does not work

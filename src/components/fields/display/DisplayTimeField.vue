@@ -4,13 +4,13 @@
 
 <script>
   /*
-   * This is the output of a date field.
+   * This is the output of a time field.
    * 
-   * @TODO: How do we set up preferred date display?
+   * @TODO: Right now it displays in military time. How do we setup option for preferred time display?
    */
 
   export default {
-    name: 'display-date-field',
+    name: 'display-time-field',
     props: {
       value: {
         type: String,

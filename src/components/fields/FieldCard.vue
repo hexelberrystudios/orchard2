@@ -48,6 +48,10 @@
             value: 'DateField'
           },
           {
+            label: 'Time',
+            value: 'TimeField'
+          },
+          {
             label: 'Completable',
             value: 'CheckboxField'
           }

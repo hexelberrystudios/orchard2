@@ -6,6 +6,7 @@
   import TextField from './TextField.vue'
   import TextAreaField from './TextAreaField.vue'
   import DateField from './DateField.vue'
+  import TimeField from './TimeField.vue'
   
   /**
    * This component will morph into the given field.
@@ -27,7 +28,8 @@
     components: {
       TextField,
       TextAreaField,
-      DateField
+      DateField,
+      TimeField
     }
   }
 </script>
