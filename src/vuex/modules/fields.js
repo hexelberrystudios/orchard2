@@ -4,7 +4,7 @@ const fieldListModule = {
   // default values
   // fields are represented as an array of empty objects since the data gets managed in the
   // form store, but we need to keep track of an ordered list of objects we can remove in the future
-  state: { fields: [{}] },
+  state: { fields: [{ active: true }] },
   getters: {
     getFields: function (state) {
       return state.fields;
@@ -14,14 +14,14 @@ const fieldListModule = {
   mutations: {
     // add field to list
     ADD_FIELD: (state) => {
-      state.fields.push({});
+      state.fields.push({ active: true });
     },
     // remove field from list
     REMOVE_FIELD: (state, fieldIndex) => {
       if (typeof fieldIndex !== 'undefined') {
         console.log('Removing index ' + fieldIndex);
         console.log(state.fields);
-        state.fields.splice(fieldIndex, 1);
+        state.fields[fieldIndex].active = false;
         console.log(state.fields);
       } else {
         throw new Error('fieldIndex undefined in fields/removeField');

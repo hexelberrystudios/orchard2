@@ -5,7 +5,7 @@
     <form v-on:submit="addTemplate" name="new-template" method="POST" action="/app/new-template" class="hxb-form">
       <text-field id="name" label="Name"></text-field>
       <template v-for="(field, index) in fields">
-        <field-card :fieldIndex="index" :removeField="removeField"></field-card>
+        <field-card :fieldIndex="index" :removeField="removeField" v-if="field.active"></field-card>
       </template>
       <add-item-button></add-item-button>
       <div class="hxb-form-field">
