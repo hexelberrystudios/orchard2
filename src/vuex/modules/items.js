@@ -63,6 +63,39 @@ const itemModule = {
       
       return utils.runHoodieFn(commit, state, findItem)
     },
+    getToDoItems: ({ commit, state }) => {
+      const findAllToDoItems = function (resolve, reject) {
+        // look through the DB for all the items
+        hoodie.store.findAll()
+          .then((docs) => {
+            console.log(docs)
+            return docs.filter(function (doc) {
+              const completableFields = doc.fields.filter(function (field) {
+                return field.fieldType === 'CompletableField'
+              })
+              
+              return doc.isItem && completableFields.length
+            }) // only include docs where isItem is true
+          })
+          .then((itemDocs) => {
+            console.log('TO DO ITEMS FOUND:')
+            console.log(itemDocs)
+            
+            // @TODO: Refactor into configurable system
+            // Sort items date desc
+            
+            // update the store with the list of available items
+            commit('ITEM_LIST', itemDocs)
+            resolve(itemDocs)
+          })
+          .catch((error) => {
+            console.log(error)
+            reject(error)
+          })
+      }
+              
+      return utils.runHoodieFn(commit, state, findAllToDoItems)
+    },
     setItem: ({ commit, state }, item) => {
       commit('ACTIVE_ITEM', item)
     }

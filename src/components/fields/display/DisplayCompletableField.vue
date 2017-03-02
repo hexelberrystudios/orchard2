@@ -13,7 +13,7 @@
     name: 'display-completable-field',
     props: {
       value: {
-        type: String,
+        type: Boolean,
         required: false
       }
     }

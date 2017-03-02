@@ -11,6 +11,7 @@ import EditTemplatePageStep1 from '../components/pages/EditTemplatePageStep1.vue
 import EditTemplatePageStep2 from '../components/pages/EditTemplatePageStep2.vue'
 import ItemPage from '../components/pages/ItemPage.vue'
 import EditItemPage from '../components/pages/EditItemPage.vue'
+import ToDoPage from '../components/pages/ToDoPage.vue'
 import StyleGuide from '../components/pages/StyleGuide.vue'
 import VueRouter from 'vue-router'
 
@@ -32,6 +33,7 @@ const router = new VueRouter({
     { path: '/app/edit-template-page-2', component: EditTemplatePageStep2 },
     { path: '/app/item/:itemId', component: ItemPage },
     { path: '/app/item/edit/:itemId', component: EditItemPage },
+    { path: '/app/todo', component: ToDoPage },
     { path: '/app/style-guide', component: StyleGuide }
   ]
 })
