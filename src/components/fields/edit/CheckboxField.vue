@@ -4,7 +4,7 @@
            type="checkbox"
            class="hxb-checkbox"
            :name="id"
-           :value="value"
+           :checked="value"
            @change="update" />
     <label :for="id" class="hxb-checkbox-label">
       {{ label }}
@@ -22,7 +22,7 @@
         // tell action in form vuex module to update its form field with the following key/value pair
         this.$store.dispatch('form/updateField', {
           name: this.id,
-          value: e.target.value
+          value: e.target.checked
         })
       }
     },
@@ -42,10 +42,6 @@
       label: {
         type: String,
         required: true
-      },
-      placeholder: {
-        type: String,
-        required: false
       }
     }
   }

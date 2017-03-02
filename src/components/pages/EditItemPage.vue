@@ -69,7 +69,7 @@
         let itemFields = this.item.fields;
         
         e.preventDefault();
-        
+        console.log(form);
         for (i = 0; i < itemFields.length; i++) {
           field = form['field_' + i];
           

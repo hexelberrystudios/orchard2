@@ -53,7 +53,7 @@
           },
           {
             label: 'Completable',
-            value: 'CheckboxField'
+            value: 'CompletableField'
           }
         ]
       };

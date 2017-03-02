@@ -1,6 +1,6 @@
 <template>
   <header class="hxb-header">
-    <span class="hxb-header__title">Hexelberry Orchard</span>
+    <router-link to="/app/home">Hexelberry Orchard</router-link>
   </header>
 </template>
 

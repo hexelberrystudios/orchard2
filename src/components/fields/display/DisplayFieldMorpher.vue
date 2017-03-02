@@ -7,6 +7,7 @@
   import DisplayTextAreaField from './DisplayTextAreaField.vue'
   import DisplayDateField from './DisplayDateField.vue'
   import DisplayTimeField from './DisplayTimeField.vue'
+  import DisplayCompletableField from './DisplayCompletableField.vue'
   
   /**
    * This component will morph into the given field.
@@ -25,7 +26,8 @@
       DisplayTextField,
       DisplayTextAreaField,
       DisplayDateField,
-      DisplayTimeField
+      DisplayTimeField,
+      DisplayCompletableField
     }
   }
 </script>
