@@ -6,7 +6,7 @@
            type="date"
            :name="id"
            class="hxb-input-field hxb-u-border hxb-gray-border-color"
-           placeholder="xx/xx/xxxx"
+           placeholder="yyyy-mm-dd"
            :value="value"
            @input="update" />
   </div>

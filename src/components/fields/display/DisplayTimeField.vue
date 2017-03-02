@@ -1,5 +1,5 @@
 <template>
-  <p>{{ value }}</p>
+  <p v-if="value">{{ value }}</p>
 </template>
 
 <script>

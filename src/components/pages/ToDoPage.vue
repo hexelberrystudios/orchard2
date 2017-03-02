@@ -29,20 +29,25 @@
     },
     methods: {
       isCompleted: function (item) {
+        let isCompleted = true
+        
         // @TODO: Figure out why item.fields is not available server side
         if (!item.fields) {
           return false
         }
-        console.log(item.fields)
+        
         // find all fields that render this item completable
         // (I mean, there should be only one, but I'm not going to prevent people from having more)
         const completableFields = item.fields.filter(function (field) {
           return field.fieldType === 'CompletableField' ? field : false
         })
-        // This item is deemed completed when all completable fields are set to completed
-        const isCompleted = completableFields.reduce(function (accumulator, value) {
-          return accumulator && value
-        })
+        
+        if (completableFields.length) {
+          // This item is deemed completed when all completable fields are set to completed
+          isCompleted = completableFields.reduce(function (currentField, field) {
+            return { value: currentField.value && field.value }
+          }).value
+        }
         
         return isCompleted
       }
