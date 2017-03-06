@@ -54,6 +54,10 @@
           {
             label: 'Completable',
             value: 'CompletableField'
+          },
+          {
+            label: 'Time Since',
+            value: 'TimeSinceField'
           }
         ]
       };
